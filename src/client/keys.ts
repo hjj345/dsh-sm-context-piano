@@ -1,4 +1,4 @@
-/** Chat node to compact navigator-preview projection. */
+/** Chat node projection and semantic navigator grouping. */
 
 import type { ChatConversationViewNode } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm/types'
@@ -6,14 +6,25 @@ import type { ContentBlock } from '@deepseek-ai/dsh-llm/types'
 export interface KeyDescriptor {
   /** Equals the ChatView row's data-chat-anchor-key. */
   key: string
-  /** First meaningful line shown as the preview title. */
+  kind: string
   title: string
-  /** Bounded plain-text preview; never injected as HTML. */
   preview: string
+  turn: number | null
+  /** Joins a tool call and its later result when Harness exposes both rows. */
+  callId: string | null
+}
+
+export interface NavigationGroup {
+  id: string
+  primaryKey: string
+  members: readonly KeyDescriptor[]
 }
 
 const PREVIEW_LIMIT = 520
 const TITLE_LIMIT = 180
+const NOISE_KINDS = new Set(['partial', 'running-tool', 'turn-tail', 'model-retry'])
+const ASSISTANT_KINDS = new Set(['assistant', 'assistant-step'])
+const TOOL_KINDS = new Set(['tool-call', 'tool-result'])
 
 function truncate(text: string, limit: number): string {
   const normalized = text.replace(/\r\n?/g, '\n').trim()
@@ -58,7 +69,7 @@ function blockText(blocks: readonly BlockLike[]): string {
 interface NodeData {
   content?: readonly ContentBlock[]
   blocks?: readonly BlockLike[]
-  root?: { name?: string; argsRaw?: string; content?: readonly ContentBlock[]; isError?: boolean }
+  root?: { callId?: string; name?: string; argsRaw?: string; content?: readonly ContentBlock[]; isError?: boolean }
   compaction?: { summary?: string | null } | null
   name?: string | null
   args?: string | null
@@ -67,7 +78,6 @@ interface NodeData {
   message?: string
 }
 
-/** Convert every currently rendered business node into safe preview text. */
 export function describeNode(node: ChatConversationViewNode): KeyDescriptor {
   const data = node.data as NodeData
   let text = ''
@@ -92,5 +102,77 @@ export function describeNode(node: ChatConversationViewNode): KeyDescriptor {
   }
 
   const preview = truncate(text === '' ? node.kind : text, PREVIEW_LIMIT)
-  return { key: node.key, title: firstLine(preview), preview }
+  return {
+    key: node.key,
+    kind: node.kind,
+    title: firstLine(preview),
+    preview,
+    turn: typeof data.turn === 'number' ? data.turn : null,
+    callId: data.root?.callId ?? null,
+  }
+}
+
+/**
+ * Reduce internal Harness rows to user-meaningful groups. Tool rows stay as
+ * expandable children; transient status rows do not become navigator marks.
+ */
+export function buildNavigationGroups(descriptors: readonly KeyDescriptor[]): NavigationGroup[] {
+  const groups: Array<{ id: string; primaryKey: string; category: string; turn: number | null; members: KeyDescriptor[] }> = []
+
+  for (const descriptor of descriptors) {
+    if (NOISE_KINDS.has(descriptor.kind)) continue
+
+    const current = groups[groups.length - 1]
+    if (TOOL_KINDS.has(descriptor.kind)) {
+      const group = current ?? {
+        id: descriptor.key,
+        primaryKey: descriptor.key,
+        category: 'tool',
+        turn: descriptor.turn,
+        members: [],
+      }
+      if (current === undefined) groups.push(group)
+      const pairedIndex = descriptor.callId === null
+        ? -1
+        : group.members.findIndex(member => member.callId === descriptor.callId && TOOL_KINDS.has(member.kind))
+      if (pairedIndex >= 0) {
+        const replaced = group.members[pairedIndex]
+        group.members[pairedIndex] = descriptor
+        if (group.primaryKey === replaced.key) {
+          group.id = descriptor.key
+          group.primaryKey = descriptor.key
+        }
+      } else {
+        group.members.push(descriptor)
+      }
+      continue
+    }
+
+    if (ASSISTANT_KINDS.has(descriptor.kind)) {
+      const sameTurn = current?.category === 'assistant'
+        && (descriptor.turn === null || current.turn === null || descriptor.turn === current.turn)
+      if (sameTurn) {
+        current.members.push(descriptor)
+      } else {
+        groups.push({
+          id: descriptor.key,
+          primaryKey: descriptor.key,
+          category: 'assistant',
+          turn: descriptor.turn,
+          members: [descriptor],
+        })
+      }
+      continue
+    }
+
+    groups.push({
+      id: descriptor.key,
+      primaryKey: descriptor.key,
+      category: descriptor.kind,
+      turn: descriptor.turn,
+      members: [descriptor],
+    })
+  }
+
+  return groups.map(({ id, primaryKey, members }) => ({ id, primaryKey, members }))
 }

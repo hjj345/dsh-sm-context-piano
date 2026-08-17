@@ -31,11 +31,21 @@ const CSS = `
   opacity: .78;
   pointer-events: none;
   transform-origin: left center;
-  transition: width 82ms cubic-bezier(.2, .8, .2, 1), background-color 100ms ease, opacity 100ms ease;
+  transition: top 110ms cubic-bezier(.2, .8, .2, 1), width 82ms cubic-bezier(.2, .8, .2, 1), background-color 100ms ease, opacity 100ms ease;
 }
 .smcp-bar-current,
 .smcp-bar-hover {
   background: var(--smcp-key-active, #202124);
+  opacity: 1;
+}
+.smcp-strip-expanded .smcp-bar:not(.smcp-bar-group-active) {
+  opacity: .32;
+}
+.smcp-bar-child {
+  opacity: .7;
+}
+.smcp-bar-child.smcp-bar-current,
+.smcp-bar-child.smcp-bar-hover {
   opacity: 1;
 }
 .smcp-strip-hidden { display: none; }

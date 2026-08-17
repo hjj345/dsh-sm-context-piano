@@ -68,7 +68,7 @@
   "scripts": {
     "build": "tsc -b && tsdown -c tsdown.host.config.mjs --config-loader tsx && tsdown -c tsdown.client.config.mjs --config-loader tsx && node scripts/wrap-client.mjs",
     "typecheck": "tsc -b",
-    "test": "node scripts/smoke.mjs && node scripts/integration.mjs",
+    "test": "node --import tsx scripts/grouping.mjs && node scripts/smoke.mjs && node scripts/integration.mjs",
     "verify": "pnpm build && pnpm test",
     "watch": "tsdown -c tsdown.client.config.mjs --config-loader tsx --watch"
   }

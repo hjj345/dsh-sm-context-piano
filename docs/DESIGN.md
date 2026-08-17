@@ -7,11 +7,12 @@
 核心交互：
 
 1. 左侧显示紧凑横线轨道；
-2. 横线对应实际渲染的对话节点；
-3. 鼠标沿整条轨道连续移动，最近节点与相邻节点形成平滑伸缩波形；
-4. 悬停显示内容预览；
-5. 点击跳转；
-6. 滚动时高亮当前阅读节点。
+2. 横线默认对应用户可感知的语义主组；
+3. 同回合助手步骤和工具链默认折叠，靠近主组时动态展开；
+4. 鼠标沿整条轨道连续移动，最近节点与相邻节点形成平滑伸缩波形；
+5. 悬停显示内容预览；
+6. 点击跳转；
+7. 滚动时高亮当前阅读节点。
 
 ## 2. DSH 接入边界
 
@@ -40,13 +41,16 @@ ctx.sessions 当前会话
 snapshot.chat.order + snapshot.chat.nodes
         │ describeNode（纯文本、安全截断）
         ▼
-KeyDescriptor[]
+KeyDescriptor[] → buildNavigationGroups()
+        │ 过滤瞬时状态、合并同回合助手步骤、归并工具链
+        ▼
+NavigationGroup[]
         │ 与 data-chat-anchor-key 行进行 key 对齐
         ▼
 真实 contentY → railY 投影 → 增量琴键 DOM
 ```
 
-快照更新时以 key 复用现有 `<button>`，不会清空整条轨道。
+快照更新时以原始节点 key 复用现有 `<button>`，不会清空整条轨道。默认只显示每组主琴键，组内子琴键保留在 DOM 中但处于折叠状态。
 
 ## 4. 几何与视觉参数
 
@@ -58,7 +62,8 @@ KeyDescriptor[]
 - 当前阅读节点：24px；
 - 悬停节点：48px，当前节点悬停时上限 52px；
 - 琴键高度：2–4px；
-- 相邻节点最小投影间距：最多 6px，节点极密时自动缩小；
+- 相邻主组最小投影间距：最多 10px，主组极密时自动缩小；
+- 子节点展开间距：最多 12px，单组展开范围优先限制在 168px 和轨道内部；
 - 浮层最大宽度：560px，圆角 16px。
 
 节点纵坐标来自消息行相对于滚动内容的真实位置。第一和最后节点映射到轨道边界，中间节点保持实际内容间距；碰撞处理只保证顺序和可辨识度，不改节点顺序。
@@ -67,7 +72,7 @@ KeyDescriptor[]
 
 ### 悬停
 
-轨道本身接收 Pointer Events，琴键不单独抢占鼠标。每帧选出距离光标最近的可见节点，并以高斯衰减计算周边琴键宽度。
+轨道本身接收 Pointer Events，琴键不单独抢占鼠标。每帧先选出距离光标最近的语义主组：多节点组展开后保持其交互区域，避免相邻主组抢走外侧子节点；再选出最近子节点，并以高斯衰减计算周边琴键宽度。
 
 ### 点击
 
@@ -80,6 +85,8 @@ KeyDescriptor[]
 ### 键盘
 
 - `ArrowUp` / `ArrowDown`：相邻节点；
+- `ArrowRight`：展开当前语义组；
+- `ArrowLeft`：收拢当前语义组；
 - `Home` / `End`：首尾节点；
 - `Enter` / `Space`：跳转；
 - `Escape`：关闭预览。
@@ -108,10 +115,11 @@ KeyDescriptor[]
 src/index.ts             惰性宿主入口
 src/client/index.ts      客户端 apply/effect
 src/client/strip.ts      轨道控制器、几何、交互和生命周期
-src/client/keys.ts       ChatNode → 安全预览文本
+src/client/keys.ts       ChatNode → 安全预览文本和语义分组
 src/client/tooltip.ts    预览 DOM
 src/client/styles.ts     Codex 式琴键与浮层样式
 src/client/locales.ts    导航可访问名称
 scripts/smoke.mjs        构建产物契约测试
+scripts/grouping.mjs     纯语义分组回归测试
 scripts/integration.mjs  jsdom 行为集成测试
 ```
