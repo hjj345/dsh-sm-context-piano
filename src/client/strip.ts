@@ -1,40 +1,33 @@
-/**
- * Codex-style conversation navigator: a compact rail of horizontal marks
- * projected from the real vertical positions of rendered ChatView rows.
- */
+/** Fixed-window Codex-style navigator for user and visible assistant output. */
 
-import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
+import type { ChatConversationViewNode, ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
 import type { Translate } from '@deepseek-ai/dsh-client-ui-slots'
-import { buildNavigationGroups, describeNode } from './keys.ts'
-import type { KeyDescriptor, NavigationGroup } from './keys.ts'
+import { buildNavigationNodes } from './keys.ts'
+import type { KeyDescriptor } from './keys.ts'
 import { updateTooltip } from './tooltip.ts'
 import type { SmContextPianoKey } from './locales.ts'
 
 const FLOW_SELECTOR = '[data-chat-flow]'
 const SCROLL_SELECTOR = '[data-conversation-scroll]'
 const ROW_SELECTOR = '[data-chat-anchor-key]'
-
 const RAIL_WIDTH = 58
-const RAIL_MAX_HEIGHT = 520
-const RAIL_HEIGHT_RATIO = 0.44
 const RAIL_TO_FLOW = 108
 const TOOLTIP_GAP = 6
 const MIN_ROOT_WIDTH = 520
 const MIN_GUTTER = 82
+const VISIBLE_KEY_COUNT = 20
+const KEY_PITCH = 18
+const MARK_HEIGHT = 4
+const RAIL_HEIGHT = (VISIBLE_KEY_COUNT - 1) * KEY_PITCH + MARK_HEIGHT
 const BASE_WIDTH = 10
 const CURRENT_WIDTH = 24
 const HOVER_WIDTH = 48
-const MARK_HEIGHT_MAX = 4
-const MARK_HEIGHT_MIN = 2
-const EXPANDED_GAP_MAX = 12
-const EXPANDED_SPAN_MAX = 168
 const BIND_RETRY_MS = 300
 const BIND_RETRY_MAX = 20
 
 interface Marker {
   el: HTMLButtonElement
   descriptor: KeyDescriptor
-  groupId: string
   row: HTMLElement | null
   contentY: number
   y: number
@@ -43,42 +36,26 @@ interface Marker {
 interface DebugState {
   mounted: boolean
   bars: number
+  total: number
+  windowStart: number
   sessionId: string | undefined
   hiddenReason: 'empty' | 'narrow' | 'overlap' | null
 }
 
-/**
- * Project ordered content coordinates into a bounded rail while preserving
- * meaningful gaps and preventing adjacent marks from becoming unclickable.
- */
-export function projectPositions(values: readonly number[], height: number, padding = 4): number[] {
-  if (values.length === 0) return []
-  if (values.length === 1) return [height / 2]
-
-  const low = Math.max(0, padding)
-  const high = Math.max(low, height - padding)
-  const span = high - low
-  const sourceLow = values[0]
-  const sourceHigh = values[values.length - 1]
-  const sourceSpan = sourceHigh - sourceLow
-  const positions = sourceSpan <= 0
-    ? values.map((_, index) => low + (index / (values.length - 1)) * span)
-    : values.map(value => low + ((value - sourceLow) / sourceSpan) * span)
-
-  const gap = Math.min(10, span / (values.length - 1))
-  for (let index = 1; index < positions.length; index += 1) {
-    positions[index] = Math.max(positions[index], positions[index - 1] + gap)
-  }
-  if (positions[positions.length - 1] > high) {
-    positions[positions.length - 1] = high
-    for (let index = positions.length - 2; index >= 0; index -= 1) {
-      positions[index] = Math.min(positions[index], positions[index + 1] - gap)
-    }
-  }
-  return positions
+export function visibleWindow(total: number, center: number, size = VISIBLE_KEY_COUNT): { start: number; end: number } {
+  if (total <= 0 || size <= 0) return { start: 0, end: 0 }
+  const count = Math.min(total, size)
+  const start = Math.max(0, Math.min(total - count, center - Math.floor(count / 2)))
+  return { start, end: start + count }
 }
 
-/** Mount and track the active ChatView without claiming a conversation slot. */
+export function stackPositions(count: number, height = RAIL_HEIGHT, pitch = KEY_PITCH): number[] {
+  if (count <= 0) return []
+  const stackHeight = (count - 1) * pitch + MARK_HEIGHT
+  const top = (height - stackHeight) / 2 + MARK_HEIGHT / 2
+  return Array.from({ length: count }, (_, index) => top + index * pitch)
+}
+
 export function attachKeyStrip(ctx: ClientContext, t: Translate<SmContextPianoKey>): () => void {
   if (typeof document === 'undefined' || typeof MutationObserver === 'undefined' || document.body === null) return () => {}
 
@@ -105,8 +82,7 @@ export function attachKeyStrip(ctx: ClientContext, t: Translate<SmContextPianoKe
   }
 
   const scheduleReconcile = (): void => {
-    if (disposed || reconcileFrame !== 0) return
-    if (mountedFlow?.isConnected) return
+    if (disposed || reconcileFrame !== 0 || mountedFlow?.isConnected) return
     reconcileFrame = window.requestAnimationFrame(reconcile)
   }
 
@@ -125,8 +101,6 @@ export function attachKeyStrip(ctx: ClientContext, t: Translate<SmContextPianoKe
     observer.disconnect()
     if (reconcileFrame !== 0) window.cancelAnimationFrame(reconcileFrame)
     disposeMount?.()
-    disposeMount = undefined
-    mountedFlow = null
   }
 }
 
@@ -140,7 +114,6 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
   strip.tabIndex = 0
   strip.setAttribute('role', 'navigation')
   strip.setAttribute('aria-label', t('nav.aria'))
-
   const tooltip = document.createElement('div')
   tooltip.className = 'smcp-tooltip'
   tooltip.setAttribute('aria-hidden', 'true')
@@ -150,13 +123,19 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
   if (forcedRootPosition) root.style.position = 'relative'
   root.append(strip, tooltip)
 
-  const debug: DebugState = { mounted: true, bars: 0, sessionId: undefined, hiddenReason: 'empty' }
+  const debug: DebugState = {
+    mounted: true,
+    bars: 0,
+    total: 0,
+    windowStart: 0,
+    sessionId: undefined,
+    hiddenReason: 'empty',
+  }
   const debugTarget = globalThis as unknown as { __smcpDebug?: DebugState }
   debugTarget.__smcpDebug = debug
 
   let alive = true
   let markers: Marker[] = []
-  let groups: NavigationGroup[] = []
   let sessionId: SessionId | undefined
   let sessionUnsub: (() => void) | undefined
   let retryTimer: ReturnType<typeof setTimeout> | undefined
@@ -167,9 +146,6 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
   let latestPointerY: number | null = null
   let hoverKey: string | null = null
   let currentKey: string | null = null
-  let currentGroupId: string | null = null
-  let expandedGroupId: string | null = null
-  let groupPositions = new Map<string, number>()
   let railTop = 0
   let railLeft = 0
 
@@ -177,19 +153,16 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     ? null
     : markers.find(marker => marker.descriptor.key === key) ?? null
 
-  const baseWidth = (marker: Marker): number => marker.groupId === currentGroupId ? CURRENT_WIDTH : BASE_WIDTH
+  const baseWidth = (marker: Marker): number => marker.descriptor.key === currentKey ? CURRENT_WIDTH : BASE_WIDTH
 
   const paintWidths = (pointerY: number | null): void => {
-    if (markers.length === 0) return
     const visible = markers.filter(marker => marker.row !== null && !marker.el.hidden)
-    const averageGap = visible.length > 1 ? Math.max(8, (visible[visible.length - 1].y - visible[0].y) / (visible.length - 1)) : 24
-    const sigma = Math.max(18, Math.min(42, averageGap * 1.35))
+    const sigma = KEY_PITCH * 1.35
     const divisor = 2 * sigma * sigma
-    for (const marker of markers) {
-      if (marker.row === null) continue
+    for (const marker of visible) {
       const base = baseWidth(marker)
       const falloff = pointerY === null ? 0 : Math.exp(-((pointerY - marker.y) ** 2) / divisor)
-      const max = marker.groupId === currentGroupId ? HOVER_WIDTH + 4 : HOVER_WIDTH
+      const max = marker.descriptor.key === currentKey ? HOVER_WIDTH + 4 : HOVER_WIDTH
       marker.el.style.width = `${(base + (max - base) * falloff).toFixed(1)}px`
     }
   }
@@ -199,9 +172,7 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     const tooltipWidth = tooltip.offsetWidth || Math.min(560, Math.max(280, rootWidth - 32))
     const tooltipHeight = tooltip.offsetHeight || 100
     const preferredLeft = railLeft + RAIL_WIDTH + TOOLTIP_GAP
-    const left = preferredLeft + tooltipWidth <= rootWidth - 8
-      ? preferredLeft
-      : Math.max(8, railLeft - tooltipWidth - 10)
+    const left = preferredLeft + tooltipWidth <= rootWidth - 8 ? preferredLeft : Math.max(8, railLeft - tooltipWidth - 10)
     const top = Math.max(8, Math.min(railTop + marker.y - tooltipHeight / 2, root.clientHeight - tooltipHeight - 8))
     tooltip.style.left = `${left.toFixed(1)}px`
     tooltip.style.top = `${top.toFixed(1)}px`
@@ -225,21 +196,17 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     })
   }
 
-  const setCurrent = (key: string | null): void => {
-    const nextGroupId = markerByKey(key)?.groupId ?? null
-    if (key === currentKey && nextGroupId === currentGroupId) return
+  const setCurrent = (key: string | null): boolean => {
+    if (key === currentKey) return false
     currentKey = key
-    currentGroupId = nextGroupId
-    for (const marker of markers) marker.el.classList.toggle('smcp-bar-current', marker.groupId === currentGroupId)
+    for (const marker of markers) marker.el.classList.toggle('smcp-bar-current', marker.descriptor.key === key)
     paintWidths(latestPointerY)
+    return true
   }
 
-  const updateCurrent = (): void => {
+  const updateCurrent = (): boolean => {
     const anchored = markers.filter(marker => marker.row !== null).sort((a, b) => a.contentY - b.contentY)
-    if (anchored.length === 0) {
-      setCurrent(null)
-      return
-    }
+    if (anchored.length === 0) return setCurrent(null)
     const readingLine = scrollport.scrollTop + Math.min(120, scrollport.clientHeight * 0.18)
     let low = 0
     let high = anchored.length - 1
@@ -248,7 +215,7 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
       if (anchored[middle].contentY <= readingLine) low = middle
       else high = middle - 1
     }
-    setCurrent(anchored[low].descriptor.key)
+    return setCurrent(anchored[low].descriptor.key)
   }
 
   const measureLayout = (): void => {
@@ -257,17 +224,15 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
 
     const rootRect = root.getBoundingClientRect()
     const flowRect = flow.getBoundingClientRect()
-    const rootHeight = root.clientHeight || rootRect.height
     const rootWidth = root.clientWidth || rootRect.width
     const measuredFlowLeft = flowRect.left - rootRect.left
     const flowLeft = Number.isFinite(measuredFlowLeft) && flowRect.width > 0
       ? measuredFlowLeft
       : Math.max(96, (rootWidth - Math.min(760, rootWidth)) / 2)
-    const height = Math.min(RAIL_MAX_HEIGHT, Math.max(220, rootHeight * RAIL_HEIGHT_RATIO))
     railLeft = Math.max(16, flowLeft - RAIL_TO_FLOW)
-    railTop = (rootHeight - height) / 2
+    railTop = (root.clientHeight - RAIL_HEIGHT) / 2
     strip.style.left = `${railLeft.toFixed(1)}px`
-    strip.style.height = `${height.toFixed(1)}px`
+    strip.style.height = `${RAIL_HEIGHT}px`
 
     const rows = new Map<string, HTMLElement>()
     for (const row of flow.querySelectorAll<HTMLElement>(ROW_SELECTOR)) {
@@ -276,79 +241,38 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     }
     const scrollRect = scrollport.getBoundingClientRect()
     for (const marker of markers) {
-      marker.row = rows.get(marker.descriptor.key) ?? null
+      marker.row = rows.get(marker.descriptor.anchorKey) ?? null
       marker.el.hidden = true
       if (marker.row !== null) {
         marker.contentY = marker.row.getBoundingClientRect().top - scrollRect.top + scrollport.scrollTop
       }
     }
 
-    const layouts = groups.flatMap(group => {
-      const members = group.members
-        .map(member => markerByKey(member.key))
-        .filter((marker): marker is Marker => marker !== null && marker.row !== null)
-        .sort((a, b) => a.contentY - b.contentY)
-      if (members.length === 0) return []
-      const representative = members.find(marker => marker.descriptor.key === group.primaryKey) ?? members[0]
-      return [{ group, members, representative, contentY: representative.contentY, y: 0 }]
-    }).sort((a, b) => a.contentY - b.contentY)
-
-    if (expandedGroupId !== null && !layouts.some(layout => layout.group.id === expandedGroupId)) {
-      expandedGroupId = null
-    }
-    const projected = projectPositions(layouts.map(layout => layout.contentY), height)
-    groupPositions = new Map()
-    const markHeight = Math.max(MARK_HEIGHT_MIN, Math.min(MARK_HEIGHT_MAX, height / Math.max(1, layouts.length * 2.1)))
-    for (let index = 0; index < layouts.length; index += 1) {
-      const layout = layouts[index]
-      layout.y = projected[index]
-      groupPositions.set(layout.group.id, layout.y)
-      if (layout.group.id === expandedGroupId && layout.members.length > 1) {
-        const ordered = [
-          layout.representative,
-          ...layout.members.filter(marker => marker !== layout.representative),
-        ]
-        const availableBelow = height - 4 - layout.y
-        const availableAbove = layout.y - 4
-        const direction = availableBelow >= availableAbove ? 1 : -1
-        const available = Math.max(availableBelow, availableAbove)
-        const gap = Math.min(
-          EXPANDED_GAP_MAX,
-          EXPANDED_SPAN_MAX / (ordered.length - 1),
-          available / (ordered.length - 1),
-        )
-        for (let memberIndex = 0; memberIndex < ordered.length; memberIndex += 1) {
-          const marker = ordered[memberIndex]
-          marker.y = layout.y + direction * memberIndex * gap
-          marker.el.hidden = false
-          marker.el.classList.toggle('smcp-bar-child', marker !== layout.representative)
-        }
-      } else {
-        layout.representative.y = layout.y
-        layout.representative.el.hidden = false
-        layout.representative.el.classList.remove('smcp-bar-child')
-      }
-    }
-    for (const marker of markers) {
-      marker.el.style.top = `${(marker.y - markHeight / 2).toFixed(1)}px`
-      marker.el.style.height = `${markHeight.toFixed(1)}px`
-      marker.el.classList.toggle('smcp-bar-group-active', marker.groupId === expandedGroupId)
+    updateCurrent()
+    const anchored = markers.filter(marker => marker.row !== null).sort((a, b) => a.contentY - b.contentY)
+    const currentIndex = Math.max(0, anchored.findIndex(marker => marker.descriptor.key === currentKey))
+    const windowRange = visibleWindow(anchored.length, currentIndex)
+    const visible = anchored.slice(windowRange.start, windowRange.end)
+    const positions = stackPositions(visible.length)
+    for (let index = 0; index < visible.length; index += 1) {
+      const marker = visible[index]
+      marker.y = positions[index]
+      marker.el.hidden = false
+      marker.el.style.top = `${(marker.y - MARK_HEIGHT / 2).toFixed(1)}px`
+      marker.el.style.height = `${MARK_HEIGHT}px`
     }
 
     const overlap = flowLeft < MIN_GUTTER || railLeft + RAIL_WIDTH + 12 > flowLeft
-    debug.hiddenReason = layouts.length === 0 ? 'empty' : rootWidth < MIN_ROOT_WIDTH ? 'narrow' : overlap ? 'overlap' : null
+    debug.hiddenReason = visible.length === 0 ? 'empty' : rootWidth < MIN_ROOT_WIDTH ? 'narrow' : overlap ? 'overlap' : null
     strip.classList.toggle('smcp-strip-hidden', debug.hiddenReason !== null)
-    if (debug.hiddenReason !== null) {
+    if (debug.hiddenReason !== null || markerByKey(hoverKey)?.el.hidden) {
       latestPointerY = null
       setHover(null)
-    } else if (markerByKey(hoverKey)?.row === null) {
-      setHover(null)
     }
-    strip.classList.toggle('smcp-strip-expanded', expandedGroupId !== null)
-    debug.bars = markers.filter(marker => !marker.el.hidden).length
-    updateCurrent()
+    debug.bars = visible.length
+    debug.total = anchored.length
+    debug.windowStart = windowRange.start
     paintWidths(latestPointerY)
-    if (latestPointerY !== null) setHover(nearestMarker(latestPointerY))
     const hovered = markerByKey(hoverKey)
     if (hovered !== null) positionTooltip(hovered)
   }
@@ -358,50 +282,31 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     layoutFrame = window.requestAnimationFrame(measureLayout)
   }
 
-  const reconcileMarkers = (nextGroups: readonly NavigationGroup[]): void => {
+  const reconcileMarkers = (descriptors: readonly KeyDescriptor[]): void => {
     const existing = new Map(markers.map(marker => [marker.descriptor.key, marker]))
     const next: Marker[] = []
-    for (const group of nextGroups) {
-      for (const descriptor of group.members) {
-        let marker = existing.get(descriptor.key)
-        if (marker === undefined) {
-          const el = document.createElement('button')
-          el.type = 'button'
-          el.tabIndex = -1
-          el.className = 'smcp-bar'
-          el.dataset.key = descriptor.key
-          marker = {
-            el,
-            descriptor,
-            groupId: group.id,
-            row: null,
-            contentY: 0,
-            y: 0,
-          }
-        } else {
-          existing.delete(descriptor.key)
-          marker.descriptor = descriptor
-          marker.groupId = group.id
-        }
-        marker.el.dataset.group = group.id
-        marker.el.setAttribute('aria-label', descriptor.title)
-        strip.appendChild(marker.el)
-        next.push(marker)
+    for (const descriptor of descriptors) {
+      let marker = existing.get(descriptor.key)
+      if (marker === undefined) {
+        const el = document.createElement('button')
+        el.type = 'button'
+        el.tabIndex = -1
+        el.className = 'smcp-bar'
+        el.dataset.key = descriptor.key
+        marker = { el, descriptor, row: null, contentY: 0, y: 0 }
+      } else {
+        existing.delete(descriptor.key)
+        marker.descriptor = descriptor
       }
+      marker.el.setAttribute('aria-label', descriptor.title)
+      strip.appendChild(marker.el)
+      next.push(marker)
     }
     for (const marker of existing.values()) marker.el.remove()
     markers = next
-    groups = [...nextGroups]
-    if (expandedGroupId !== null && !groups.some(group => group.id === expandedGroupId)) expandedGroupId = null
     const hovered = markerByKey(hoverKey)
-    if (hovered === null) {
-      setHover(null)
-    } else {
-      updateTooltip(tooltip, hovered.descriptor)
-      window.requestAnimationFrame(() => {
-        if (alive && hoverKey === hovered.descriptor.key) positionTooltip(hovered)
-      })
-    }
+    if (hovered === null) setHover(null)
+    else updateTooltip(tooltip, hovered.descriptor)
     scheduleLayout()
   }
 
@@ -410,12 +315,12 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     const session = ctx.sessions.binding(sessionId)?.session
     if (session === undefined) return
     const snapshot = session.getSnapshot()
-    const descriptors: KeyDescriptor[] = []
+    const nodes: ChatConversationViewNode[] = []
     for (const key of snapshot.chat.order) {
       const node = snapshot.chat.nodes.get(key)
-      if (node !== undefined) descriptors.push(describeNode(node))
+      if (node !== undefined) nodes.push(node)
     }
-    reconcileMarkers(buildNavigationGroups(descriptors))
+    reconcileMarkers(buildNavigationNodes(nodes))
   }
 
   const bindSession = (): void => {
@@ -462,73 +367,27 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     return nearest
   }
 
-  const nearestGroup = (localY: number): NavigationGroup | null => {
-    if (expandedGroupId !== null) {
-      const expanded = markers.filter(marker => marker.groupId === expandedGroupId && !marker.el.hidden)
-      if (expanded.length > 0) {
-        const low = Math.min(...expanded.map(marker => marker.y)) - 8
-        const high = Math.max(...expanded.map(marker => marker.y)) + 8
-        if (localY >= low && localY <= high) {
-          return groups.find(group => group.id === expandedGroupId) ?? null
-        }
-      }
-    }
-    let nearest: NavigationGroup | null = null
-    let distance = Number.POSITIVE_INFINITY
-    for (const group of groups) {
-      const y = groupPositions.get(group.id)
-      if (y === undefined) continue
-      const candidate = Math.abs(localY - y)
-      if (candidate < distance) {
-        nearest = group
-        distance = candidate
-      }
-    }
-    return nearest
-  }
-
-  const setExpanded = (groupId: string | null): void => {
-    if (groupId === expandedGroupId) return
-    expandedGroupId = groupId
-    strip.classList.toggle('smcp-strip-expanded', groupId !== null)
-    scheduleLayout()
-  }
-
   const onPointerMove = (event: PointerEvent): void => {
     latestPointerY = event.clientY - strip.getBoundingClientRect().top
     if (pointerFrame !== 0) return
     pointerFrame = window.requestAnimationFrame(() => {
       pointerFrame = 0
       if (!alive || latestPointerY === null) return
-      const group = nearestGroup(latestPointerY)
-      const nextExpanded = group !== null && group.members.length > 1 ? group.id : null
-      if (nextExpanded !== expandedGroupId) {
-        setExpanded(nextExpanded)
-        return
-      }
-      const nearest = nearestMarker(latestPointerY)
-      setHover(nearest)
+      setHover(nearestMarker(latestPointerY))
       paintWidths(latestPointerY)
     })
   }
 
-  const onPointerLeave = (): void => {
+  const clearInteraction = (): void => {
     latestPointerY = null
     setHover(null)
-    setExpanded(null)
-    paintWidths(null)
-  }
-
-  const onBlur = (): void => {
-    latestPointerY = null
-    setHover(null)
-    setExpanded(null)
     paintWidths(null)
   }
 
   const jumpTo = (marker: Marker | null): void => {
     if (marker === null || marker.row === null) return
     setCurrent(marker.descriptor.key)
+    scheduleLayout()
     const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
     scrollport.scrollTo({ top: Math.max(0, marker.contentY - 16), behavior: reduceMotion ? 'auto' : 'smooth' })
   }
@@ -542,20 +401,8 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
   const onKeyDown = (event: KeyboardEvent): void => {
     const visible = markers.filter(marker => marker.row !== null && !marker.el.hidden).sort((a, b) => a.y - b.y)
     if (visible.length === 0) return
-    if (event.key === 'Escape' || event.key === 'ArrowLeft') {
-      event.preventDefault()
-      setHover(null)
-      setExpanded(null)
-      paintWidths(null)
-      return
-    }
-    if (event.key === 'ArrowRight') {
-      const selected = markerByKey(hoverKey) ?? markerByKey(currentKey) ?? visible[0]
-      const group = groups.find(item => item.id === selected.groupId)
-      if (group !== undefined && group.members.length > 1) {
-        event.preventDefault()
-        setExpanded(group.id)
-      }
+    if (event.key === 'Escape') {
+      clearInteraction()
       return
     }
     if (event.key === 'Enter' || event.key === ' ') {
@@ -580,7 +427,7 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     if (scrollFrame !== 0) return
     scrollFrame = window.requestAnimationFrame(() => {
       scrollFrame = 0
-      if (alive) updateCurrent()
+      if (alive && updateCurrent()) scheduleLayout()
     })
   }
 
@@ -590,12 +437,11 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
   resizeObserver?.observe(root)
   resizeObserver?.observe(scrollport)
   resizeObserver?.observe(flow)
-
   strip.addEventListener('pointermove', onPointerMove)
-  strip.addEventListener('pointerleave', onPointerLeave)
+  strip.addEventListener('pointerleave', clearInteraction)
   strip.addEventListener('click', onClick)
   strip.addEventListener('keydown', onKeyDown)
-  strip.addEventListener('blur', onBlur)
+  strip.addEventListener('blur', clearInteraction)
   scrollport.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', scheduleLayout)
   const listUnsub = ctx.sessions.list.subscribe(bindSession)
@@ -610,10 +456,10 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     flowObserver.disconnect()
     resizeObserver?.disconnect()
     strip.removeEventListener('pointermove', onPointerMove)
-    strip.removeEventListener('pointerleave', onPointerLeave)
+    strip.removeEventListener('pointerleave', clearInteraction)
     strip.removeEventListener('click', onClick)
     strip.removeEventListener('keydown', onKeyDown)
-    strip.removeEventListener('blur', onBlur)
+    strip.removeEventListener('blur', clearInteraction)
     scrollport.removeEventListener('scroll', onScroll)
     window.removeEventListener('resize', scheduleLayout)
     if (retryTimer !== undefined) window.clearTimeout(retryTimer)

@@ -38,16 +38,6 @@ const CSS = `
   background: var(--smcp-key-active, #202124);
   opacity: 1;
 }
-.smcp-strip-expanded .smcp-bar:not(.smcp-bar-group-active) {
-  opacity: .32;
-}
-.smcp-bar-child {
-  opacity: .7;
-}
-.smcp-bar-child.smcp-bar-current,
-.smcp-bar-child.smcp-bar-hover {
-  opacity: 1;
-}
 .smcp-strip-hidden { display: none; }
 .smcp-tooltip {
   position: absolute;

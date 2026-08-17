@@ -143,22 +143,28 @@ const exports = globalThis.__handoff.factory(spec => {
   throw new Error(`unexpected require: ${spec}`)
 })
 
-await check('mounts one incremental marker per rendered conversation node', async () => {
+await check('mounts only user messages and visible assistant output runs', async () => {
   exports.apply(ctx)
   await waitFrame()
   const strip = document.querySelector('.smcp-strip')
   assert.ok(strip)
-  assert.equal(document.querySelectorAll('.smcp-bar').length, 5)
+  assert.equal(document.querySelectorAll('.smcp-bar').length, 3)
   assert.equal([...document.querySelectorAll('.smcp-bar')].filter(bar => !bar.hidden).length, 3)
+  assert.equal(document.querySelector('[data-key="tool:3"]'), null)
+  assert.equal(document.querySelector('[data-key="command:4"]'), null)
   assert.equal(document.querySelector('[data-key="partial:5"]'), null)
   assert.equal(strip.getAttribute('role'), 'navigation')
+  assert.equal(Number.parseFloat(strip.style.height), 346)
   assert.equal(globalThis.__smcpDebug.hiddenReason, null)
 })
 
-await check('projects real content spacing instead of distributing by index', () => {
+await check('keeps a compact fixed-pitch stack centered in the rail', () => {
+  const strip = document.querySelector('.smcp-strip')
   const bars = [...document.querySelectorAll('.smcp-bar')].filter(bar => !bar.hidden)
-  const positions = bars.map(bar => Number.parseFloat(bar.style.top))
-  assert.ok(positions[1] - positions[0] < positions[2] - positions[1], positions.join(', '))
+  const centers = bars.map(bar => Number.parseFloat(bar.style.top) + Number.parseFloat(bar.style.height) / 2)
+  assert.equal(centers[1] - centers[0], 18)
+  assert.equal(centers[2] - centers[1], 18)
+  assert.equal((centers[0] + centers[2]) / 2, Number.parseFloat(strip.style.height) / 2)
 })
 
 await check('the full rail continuously drives the hover wave and preview', async () => {
@@ -172,41 +178,18 @@ await check('the full rail continuously drives the hover wave and preview', asyn
   const secondY = Number.parseFloat(bars[1].style.top) + Number.parseFloat(bars[1].style.height) / 2
   strip.dispatchEvent(new window.MouseEvent('pointermove', { clientY: 250 + secondY, bubbles: true }))
   await waitFrame()
-  await waitFrame()
-  const assistantY = Number.parseFloat(bars[1].style.top) + Number.parseFloat(bars[1].style.height) / 2
-  strip.dispatchEvent(new window.MouseEvent('pointermove', { clientY: 250 + assistantY, bubbles: true }))
-  await waitFrame()
   assert.ok(bars[1].classList.contains('smcp-bar-hover'))
   assert.ok(Number.parseFloat(bars[1].style.width) > Number.parseFloat(bars[0].style.width))
   const tooltip = document.querySelector('.smcp-tooltip')
   assert.ok(tooltip.classList.contains('smcp-tooltip-visible'))
   assert.match(tooltip.textContent, /第二个对话节点/)
-  assert.doesNotMatch(tooltip.textContent, /token|工具|assistant/i)
-  assert.equal(bars[2].hidden, false, 'tool child expands with its assistant group')
-  const conclusion = document.querySelector('[data-key="assistant:3b"]')
-  const conclusionY = Number.parseFloat(conclusion.style.top) + Number.parseFloat(conclusion.style.height) / 2
-  strip.dispatchEvent(new window.MouseEvent('pointermove', { clientY: 250 + conclusionY, bubbles: true }))
-  await waitFrame()
-  assert.ok(conclusion.classList.contains('smcp-bar-hover'), 'outer child remains reachable while expanded')
-  assert.match(tooltip.textContent, /工具执行后的助手结论/)
+  assert.doesNotMatch(tooltip.textContent, /token|工具|read_file|assistant/i)
 })
 
 await check('clicking the rail jumps to the currently previewed node', () => {
   const strip = document.querySelector('.smcp-strip')
-  strip.dispatchEvent(new window.MouseEvent('click', { clientY: 300, bubbles: true }))
-  assert.equal(scrollport.scrollTop, contentTops[3] - 16)
-})
-
-await check('an expanded tool child remains previewable and directly jumpable', async () => {
-  const strip = document.querySelector('.smcp-strip')
-  const tool = document.querySelector('[data-key="tool:3"]')
-  const y = Number.parseFloat(tool.style.top) + Number.parseFloat(tool.style.height) / 2
-  strip.dispatchEvent(new window.MouseEvent('pointermove', { clientY: 250 + y, bubbles: true }))
-  await waitFrame()
-  assert.ok(tool.classList.contains('smcp-bar-hover'))
-  assert.match(document.querySelector('.smcp-tooltip').textContent, /read_file/)
-  strip.dispatchEvent(new window.MouseEvent('click', { clientY: 250 + y, bubbles: true }))
-  assert.equal(scrollport.scrollTop, contentTops[2] - 16)
+  strip.dispatchEvent(new window.MouseEvent('click', { clientY: 342, bubbles: true }))
+  assert.equal(scrollport.scrollTop, contentTops[1] - 16)
 })
 
 await check('scroll updates active color and length immediately', async () => {
@@ -233,13 +216,13 @@ await check('snapshot updates retain existing marker elements', async () => {
   appendRow(7)
   snapshotSubscriber()
   await waitFrame()
-  assert.equal(document.querySelectorAll('.smcp-bar').length, 6)
+  assert.equal(document.querySelectorAll('.smcp-bar').length, 4)
   assert.equal(document.querySelector('[data-key="user:1"]'), first)
 })
 
 await check('an open preview follows streaming descriptor updates', async () => {
   const strip = document.querySelector('.smcp-strip')
-  const last = document.querySelector('[data-key="assistant:7"]')
+  const last = document.querySelector('[data-key="assistant:7::output:0"]')
   const y = Number.parseFloat(last.style.top) + Number.parseFloat(last.style.height) / 2
   strip.dispatchEvent(new window.MouseEvent('pointermove', { clientY: 250 + y, bubbles: true }))
   await waitFrame()
@@ -260,8 +243,56 @@ await check('keyboard navigation previews and activates a marker', async () => {
   assert.equal(scrollport.scrollTop, contentTops[7] - 16)
 })
 
+await check('shows at most 20 keys and recenters after selecting the top boundary', async () => {
+  flow.textContent = ''
+  keys.splice(0)
+  contentTops.splice(0)
+  nodeMap.clear()
+  snapshot.chat.order.splice(0)
+  for (let index = 0; index < 25; index += 1) {
+    const key = `user:window:${index}`
+    keys.push(key)
+    contentTops.push(index * 100)
+    nodeMap.set(key, {
+      key, kind: 'user', anchorSeq: 100 + index,
+      data: { content: [{ type: 'text', text: `用户节点 ${index}` }] },
+    })
+    snapshot.chat.order.push(key)
+    appendRow(index)
+  }
+  scrollport.scrollTop = 1200
+  snapshotSubscriber()
+  await waitFrame()
+  await waitFrame()
+  assert.equal(globalThis.__smcpDebug.total, 25)
+  assert.equal(globalThis.__smcpDebug.bars, 20)
+  assert.equal(globalThis.__smcpDebug.windowStart, 3)
+  assert.equal(document.querySelector('[data-key="user:window:2"]').hidden, true)
+  assert.equal(document.querySelector('[data-key="user:window:3"]').hidden, false)
+
+  const strip = document.querySelector('.smcp-strip')
+  const top = document.querySelector('[data-key="user:window:3"]')
+  const topY = Number.parseFloat(top.style.top) + Number.parseFloat(top.style.height) / 2
+  strip.dispatchEvent(new window.MouseEvent('pointermove', { clientY: 250 + topY, bubbles: true }))
+  await waitFrame()
+  strip.dispatchEvent(new window.MouseEvent('click', { clientY: 250 + topY, bubbles: true }))
+  await waitFrame()
+  assert.equal(globalThis.__smcpDebug.windowStart, 0)
+  assert.equal(document.querySelector('[data-key="user:window:0"]').hidden, false)
+})
+
 await check('a single rendered node stays centered on the rail', async () => {
-  snapshot.chat.order.splice(0, snapshot.chat.order.length, 'assistant:7')
+  flow.textContent = ''
+  keys.splice(0, keys.length, 'user:solo')
+  contentTops.splice(0, contentTops.length, 80)
+  nodeMap.clear()
+  nodeMap.set('user:solo', {
+    key: 'user:solo', kind: 'user', anchorSeq: 999,
+    data: { content: [{ type: 'text', text: '单节点' }] },
+  })
+  snapshot.chat.order.splice(0, snapshot.chat.order.length, 'user:solo')
+  appendRow(0)
+  scrollport.scrollTop = 0
   snapshotSubscriber()
   await waitFrame()
   const strip = document.querySelector('.smcp-strip')
