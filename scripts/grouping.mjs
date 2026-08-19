@@ -3,6 +3,12 @@
 import assert from 'node:assert/strict'
 import { buildNavigationNodes } from '../src/client/keys.ts'
 import { stackPositions, visibleWindow } from '../src/client/strip.ts'
+import {
+  DEFAULT_SETTINGS,
+  decodeSettings,
+  railHeight,
+  validateSettings,
+} from '../src/core/config.ts'
 
 const nodes = [
   {
@@ -54,7 +60,17 @@ assert.deepEqual(visibleWindow(30, 15), { start: 5, end: 25 })
 assert.deepEqual(visibleWindow(5, 4), { start: 0, end: 5 })
 const positions = stackPositions(5)
 assert.equal(positions.length, 5)
-assert.ok(positions.every((position, index) => index === 0 || position - positions[index - 1] === 18))
-assert.equal((positions[0] + positions[positions.length - 1]) / 2, 173)
+assert.ok(positions.every((position, index) => index === 0 || position - positions[index - 1] === 12))
+assert.equal((positions[0] + positions[positions.length - 1]) / 2, 115)
 
-console.log('  ok  visible output segmentation and fixed window (14 assertions)')
+assert.equal(railHeight(DEFAULT_SETTINGS), 230)
+assert.deepEqual(decodeSettings({ enabled: false, keyHeight: 4, keyGap: 6, maxVisible: 5 }), {
+  enabled: false, keyHeight: 4, keyGap: 6, maxVisible: 5,
+})
+assert.deepEqual(decodeSettings({ enabled: true, keyHeight: 99, keyGap: 0, maxVisible: 99 }), {
+  enabled: true, keyHeight: 4, keyGap: 6, maxVisible: 30,
+})
+assert.doesNotThrow(() => validateSettings(DEFAULT_SETTINGS))
+assert.throws(() => validateSettings({ ...DEFAULT_SETTINGS, keyGap: 5 }))
+
+console.log('  ok  visible output segmentation, fixed window, and settings bounds (19 assertions)')

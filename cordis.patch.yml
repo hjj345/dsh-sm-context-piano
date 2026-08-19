@@ -4,8 +4,8 @@
 # `dsh plugin --profile web add link:<repo>/packages/dsh-sm-context-piano`.
 #
 # The row loads the package's browser face through `dsh.client`. The host face
-# is intentionally inert: this navigator never alters sessions, system prompts,
-# or the model context.
+# only registers the plugin's official settings namespace; this navigator never
+# alters sessions, system prompts, or the model context.
 - insert:
     - id: ui-dsh-sm-context-piano
       name: '@linxin666/dsh-sm-context-piano'

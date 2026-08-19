@@ -6,6 +6,12 @@ import { buildNavigationNodes } from './keys.ts'
 import type { KeyDescriptor } from './keys.ts'
 import { updateTooltip } from './tooltip.ts'
 import type { SmContextPianoKey } from './locales.ts'
+import {
+  DEFAULT_SETTINGS,
+  DEFAULT_SETTINGS_SOURCE,
+  railHeight,
+} from '../core/config.ts'
+import type { PianoSettingsSource } from '../core/config.ts'
 
 const FLOW_SELECTOR = '[data-chat-flow]'
 const SCROLL_SELECTOR = '[data-conversation-scroll]'
@@ -15,10 +21,6 @@ const RAIL_TO_FLOW = 108
 const TOOLTIP_GAP = 6
 const MIN_ROOT_WIDTH = 520
 const MIN_GUTTER = 82
-const VISIBLE_KEY_COUNT = 20
-const KEY_PITCH = 18
-const MARK_HEIGHT = 2
-const RAIL_HEIGHT = 346
 const BASE_WIDTH = 10
 const CURRENT_WIDTH = 24
 const HOVER_WIDTH = 48
@@ -42,21 +44,30 @@ interface DebugState {
   hiddenReason: 'empty' | 'narrow' | 'overlap' | null
 }
 
-export function visibleWindow(total: number, center: number, size = VISIBLE_KEY_COUNT): { start: number; end: number } {
+export function visibleWindow(total: number, center: number, size = DEFAULT_SETTINGS.maxVisible): { start: number; end: number } {
   if (total <= 0 || size <= 0) return { start: 0, end: 0 }
   const count = Math.min(total, size)
   const start = Math.max(0, Math.min(total - count, center - Math.floor(count / 2)))
   return { start, end: start + count }
 }
 
-export function stackPositions(count: number, height = RAIL_HEIGHT, pitch = KEY_PITCH): number[] {
+export function stackPositions(
+  count: number,
+  height = railHeight(DEFAULT_SETTINGS),
+  pitch = DEFAULT_SETTINGS.keyGap,
+  markHeight = DEFAULT_SETTINGS.keyHeight,
+): number[] {
   if (count <= 0) return []
-  const stackHeight = (count - 1) * pitch + MARK_HEIGHT
-  const top = (height - stackHeight) / 2 + MARK_HEIGHT / 2
+  const stackHeight = (count - 1) * pitch + markHeight
+  const top = (height - stackHeight) / 2 + markHeight / 2
   return Array.from({ length: count }, (_, index) => top + index * pitch)
 }
 
-export function attachKeyStrip(ctx: ClientContext, t: Translate<SmContextPianoKey>): () => void {
+export function attachKeyStrip(
+  ctx: ClientContext,
+  t: Translate<SmContextPianoKey>,
+  settings: PianoSettingsSource = DEFAULT_SETTINGS_SOURCE,
+): () => void {
   if (typeof document === 'undefined' || typeof MutationObserver === 'undefined' || document.body === null) return () => {}
 
   let disposed = false
@@ -67,6 +78,12 @@ export function attachKeyStrip(ctx: ClientContext, t: Translate<SmContextPianoKe
   const reconcile = (): void => {
     reconcileFrame = 0
     if (disposed) return
+    if (!settings.getSnapshot().enabled) {
+      disposeMount?.()
+      disposeMount = undefined
+      mountedFlow = null
+      return
+    }
     const nextFlow = document.querySelector<HTMLElement>(FLOW_SELECTOR)
     if (nextFlow === mountedFlow && nextFlow?.isConnected) return
     disposeMount?.()
@@ -74,7 +91,7 @@ export function attachKeyStrip(ctx: ClientContext, t: Translate<SmContextPianoKe
     mountedFlow = nextFlow
     if (nextFlow !== null) {
       try {
-        disposeMount = mountStrip(ctx, nextFlow, t)
+        disposeMount = mountStrip(ctx, nextFlow, t, settings)
       } catch (error) {
         console.warn('[dsh-sm-context-piano] navigator mount failed:', error)
       }
@@ -82,7 +99,7 @@ export function attachKeyStrip(ctx: ClientContext, t: Translate<SmContextPianoKe
   }
 
   const scheduleReconcile = (): void => {
-    if (disposed || reconcileFrame !== 0 || mountedFlow?.isConnected) return
+    if (disposed || reconcileFrame !== 0 || mountedFlow?.isConnected || !settings.getSnapshot().enabled) return
     reconcileFrame = window.requestAnimationFrame(reconcile)
   }
 
@@ -94,17 +111,32 @@ export function attachKeyStrip(ctx: ClientContext, t: Translate<SmContextPianoKe
     console.warn('[dsh-sm-context-piano] navigator watcher unavailable:', error)
     return () => {}
   }
+  const settingsUnsub = settings.subscribe(() => {
+    if (!settings.getSnapshot().enabled) {
+      disposeMount?.()
+      disposeMount = undefined
+      mountedFlow = null
+    } else {
+      scheduleReconcile()
+    }
+  })
   reconcile()
 
   return () => {
     disposed = true
+    settingsUnsub()
     observer.disconnect()
     if (reconcileFrame !== 0) window.cancelAnimationFrame(reconcileFrame)
     disposeMount?.()
   }
 }
 
-function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContextPianoKey>): () => void {
+function mountStrip(
+  ctx: ClientContext,
+  flow: HTMLElement,
+  t: Translate<SmContextPianoKey>,
+  settings: PianoSettingsSource,
+): () => void {
   const scrollport = flow.closest<HTMLElement>(SCROLL_SELECTOR) ?? flow.parentElement
   const root = scrollport?.parentElement
   if (scrollport === null || scrollport === undefined || root === null || root === undefined) return () => {}
@@ -157,7 +189,7 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
 
   const paintWidths = (pointerY: number | null): void => {
     const visible = markers.filter(marker => marker.row !== null && !marker.el.hidden)
-    const sigma = KEY_PITCH * 1.35
+    const sigma = settings.getSnapshot().keyGap * 1.35
     const divisor = 2 * sigma * sigma
     for (const marker of visible) {
       const base = baseWidth(marker)
@@ -230,9 +262,11 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
       ? measuredFlowLeft
       : Math.max(96, (rootWidth - Math.min(760, rootWidth)) / 2)
     railLeft = Math.max(16, flowLeft - RAIL_TO_FLOW)
-    railTop = (root.clientHeight - RAIL_HEIGHT) / 2
+    const config = settings.getSnapshot()
+    const height = railHeight(config)
+    railTop = (root.clientHeight - height) / 2
     strip.style.left = `${railLeft.toFixed(1)}px`
-    strip.style.height = `${RAIL_HEIGHT}px`
+    strip.style.height = `${height}px`
 
     const rows = new Map<string, HTMLElement>()
     for (const row of flow.querySelectorAll<HTMLElement>(ROW_SELECTOR)) {
@@ -251,15 +285,15 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
     updateCurrent()
     const anchored = markers.filter(marker => marker.row !== null).sort((a, b) => a.contentY - b.contentY)
     const currentIndex = Math.max(0, anchored.findIndex(marker => marker.descriptor.key === currentKey))
-    const windowRange = visibleWindow(anchored.length, currentIndex)
+    const windowRange = visibleWindow(anchored.length, currentIndex, config.maxVisible)
     const visible = anchored.slice(windowRange.start, windowRange.end)
-    const positions = stackPositions(visible.length)
+    const positions = stackPositions(visible.length, height, config.keyGap, config.keyHeight)
     for (let index = 0; index < visible.length; index += 1) {
       const marker = visible[index]
       marker.y = positions[index]
       marker.el.hidden = false
-      marker.el.style.top = `${(marker.y - MARK_HEIGHT / 2).toFixed(1)}px`
-      marker.el.style.height = `${MARK_HEIGHT}px`
+      marker.el.style.top = `${(marker.y - config.keyHeight / 2).toFixed(1)}px`
+      marker.el.style.height = `${config.keyHeight}px`
     }
 
     const overlap = flowLeft < MIN_GUTTER || railLeft + RAIL_WIDTH + 12 > flowLeft
@@ -445,6 +479,7 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
   scrollport.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', scheduleLayout)
   const listUnsub = ctx.sessions.list.subscribe(bindSession)
+  const settingsUnsub = settings.subscribe(scheduleLayout)
 
   bindSession()
   scheduleLayout()
@@ -452,6 +487,7 @@ function mountStrip(ctx: ClientContext, flow: HTMLElement, t: Translate<SmContex
   return () => {
     alive = false
     listUnsub()
+    settingsUnsub()
     sessionUnsub?.()
     flowObserver.disconnect()
     resizeObserver?.disconnect()

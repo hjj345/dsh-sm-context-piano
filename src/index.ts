@@ -1,12 +1,28 @@
-/**
- * Host face for the web-profile bundle.
- *
- * The feature is deliberately browser-only: a conversation navigator must
- * not add model instructions, mutate sessions, or expose an HTTP surface.
- */
+/** Host settings registration for the browser-only conversation navigator. */
 
-export const inject: readonly string[] = []
+import type { Context } from '@deepseek-ai/cordis'
+import { settingsNamespace } from '@deepseek-ai/dsh-settings'
+import type {} from '@deepseek-ai/dsh-settings'
+import z from '@deepseek-ai/schemastery'
+import {
+  DEFAULT_SETTINGS,
+  SETTINGS_NAMESPACE,
+  validateSettings,
+} from './core/config.ts'
 
-export function apply(): void {
-  // The bundle row is needed to load ./client; the host has no work to do.
+const PianoSettingsSchema = z.object({
+  enabled: z.boolean().default(DEFAULT_SETTINGS.enabled),
+  keyHeight: z.number().default(DEFAULT_SETTINGS.keyHeight),
+  keyGap: z.number().default(DEFAULT_SETTINGS.keyGap),
+  maxVisible: z.number().default(DEFAULT_SETTINGS.maxVisible),
+})
+
+export function apply(ctx: Context): void {
+  ctx.inject(['settings'], (settingsCtx) => {
+    settingsCtx.settings.register(
+      settingsNamespace(SETTINGS_NAMESPACE),
+      PianoSettingsSchema,
+      { applies: 'live', validate: validateSettings },
+    )
+  })
 }

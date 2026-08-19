@@ -12,12 +12,22 @@
 
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
+import {
+  SETTINGS_NAMESPACE,
+  decodeSettings,
+} from '../core/config.ts'
+import type { PianoSettings } from '../core/config.ts'
 import { NS, dictionaries } from './locales.ts'
+import {
+  PianoSettingsPage,
+  createPianoSettingsSource,
+} from './settings-page.tsx'
 import { installStyles } from './styles.ts'
 import { attachKeyStrip } from './strip.ts'
 
-/** Required services: the session store (active conversation) and the locale service. */
-export const inject = ['sessions', 'locale']
+/** Required services for the conversation surface and official settings scope. */
+export const inject = ['sessions', 'locale', 'slots', 'settingsScope', 'connection', 'remote']
 
 /** Apply the browser half. */
 export function apply(ctx: ClientContext): void {
@@ -25,5 +35,20 @@ export function apply(ctx: ClientContext): void {
   ctx.effect(() => installStyles(), 'dsh-sm-context-piano: styles')
 
   const t = ctx.locale.bind(NS)
-  ctx.effect(() => attachKeyStrip(ctx, t), 'dsh-sm-context-piano: navigator strip')
+  const scope = ctx.settingsScope.bind<PianoSettings>({
+    namespace: SETTINGS_NAMESPACE,
+    decode: decodeSettings,
+  })
+  const settings = createPianoSettingsSource(scope)
+
+  ctx.slots.inject('settings.section', () => ctx.slots.register({
+    name: 'settings.section',
+    id: 'sm-context-piano',
+    order: 21,
+    label: () => t('settings.nav'),
+    locale: NS,
+    inject: () => ({ scope }),
+  }, PianoSettingsPage))
+
+  ctx.effect(() => attachKeyStrip(ctx, t, settings), 'dsh-sm-context-piano: navigator strip')
 }

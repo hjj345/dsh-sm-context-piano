@@ -12,6 +12,11 @@ export default {
   format: ['cjs'],
   sourcemap: false,
   clean: false,
+  loader: {
+    // CJS plugin bundles execute through DSH's module loader, so a relative
+    // asset URL would resolve against the app document instead of the bundle.
+    '.png': 'dataurl',
+  },
   outExtensions: () => ({ js: '.js' }),
   deps: {
     neverBundle: [/^react/, /^@deepseek-ai\//],

@@ -9,7 +9,7 @@ export default {
   outDir: 'lib',
   format: ['esm'],
   sourcemap: false,
-  clean: false,
+  clean: true,
   outExtensions: () => ({ js: '.js' }),
   deps: {
     neverBundle: [/^node:/, /^@deepseek-ai\//],

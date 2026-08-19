@@ -1,7 +1,10 @@
 {
   "name": "@linxin666/dsh-sm-context-piano",
-  "description": "Codex-style conversation navigator for the DeepSeek Harness Web GUI: hover the compact key rail to preview and jump between rendered conversation nodes.",
-  "version": "0.1.0",
+  "description": "Configurable Codex-style conversation navigator for the DeepSeek Harness Web GUI, with compact previews and fast paragraph jumps.",
+  "version": "1.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
@@ -23,20 +26,31 @@
     },
     "client": {
       "inject": [
+        "@deepseek-ai/dsh-api-remotes",
+        "@deepseek-ai/dsh-client-connection",
         "@deepseek-ai/dsh-client-runtime",
         "@deepseek-ai/dsh-client-locale",
-        "@deepseek-ai/dsh-client-ui-conversation"
+        "@deepseek-ai/dsh-client-ui-conversation",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-slots"
       ],
       "platform": "web"
     }
   },
+  "dependencies": {
+    "@deepseek-ai/dsh-settings": "^0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
   "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
     "react": "^18.2.0"
   },
   "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-client-locale": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-ui-conversation": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-settings": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-llm": "^0.1.0-rc.6",
     "@types/node": "^22.20.0",
@@ -54,17 +68,13 @@
     "src",
     "scripts",
     "docs",
+    "images",
     "cordis.patch.yml",
     "README.md",
     "README.en.md",
     "LICENSE"
   ],
   "license": "Apache-2.0",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/zhu1090093659/dsh-web-ui.git",
-    "directory": "packages/dsh-sm-context-piano"
-  },
   "scripts": {
     "build": "tsc -b && tsdown -c tsdown.host.config.mjs --config-loader tsx && tsdown -c tsdown.client.config.mjs --config-loader tsx && node scripts/wrap-client.mjs",
     "typecheck": "tsc -b",

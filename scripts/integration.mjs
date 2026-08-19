@@ -32,6 +32,7 @@ globalThis.document = document
 globalThis.MutationObserver = window.MutationObserver
 globalThis.requestAnimationFrame = window.requestAnimationFrame.bind(window)
 globalThis.cancelAnimationFrame = window.cancelAnimationFrame.bind(window)
+globalThis.IS_REACT_ACT_ENVIRONMENT = true
 globalThis.ResizeObserver = class {
   observe() {}
   disconnect() {}
@@ -122,6 +123,29 @@ const session = {
 }
 let currentSession = 's1'
 let listSubscriber = () => {}
+let settingsSnapshot = {
+  status: 'ready', writable: true, revision: 1,
+  value: { enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 },
+}
+const settingsSubscribers = new Set()
+const publishSettings = (field, value) => {
+  settingsSnapshot = {
+    ...settingsSnapshot,
+    revision: settingsSnapshot.revision + 1,
+    value: { ...settingsSnapshot.value, [field]: value },
+  }
+  for (const subscriber of settingsSubscribers) subscriber()
+}
+const settingsScope = {
+  getSnapshot: () => settingsSnapshot,
+  subscribe: fn => { settingsSubscribers.add(fn); return () => { settingsSubscribers.delete(fn) } },
+  set: async (field, value) => { publishSettings(field, value) },
+  unset: async field => {
+    const defaults = { enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }
+    publishSettings(field, defaults[field])
+  },
+}
+let settingsSection
 const ctx = {
   effect: fn => { const disposer = fn(); globalThis.__disposers.push(disposer); return disposer },
   locale: { register: () => {}, bind: () => key => key },
@@ -131,6 +155,22 @@ const ctx = {
       subscribe: fn => { listSubscriber = fn; return () => { listSubscriber = () => {} } },
     },
     binding: id => id === 's1' ? { session } : undefined,
+  },
+  settingsScope: {
+    bind: spec => {
+      assert.equal(spec.namespace, 'sm-context-piano')
+      return settingsScope
+    },
+  },
+  slots: {
+    inject: (name, callback) => {
+      assert.equal(name, 'settings.section')
+      callback()
+    },
+    register: (options, component) => {
+      settingsSection = { options, component }
+      return () => { settingsSection = undefined }
+    },
   },
 }
 globalThis.__disposers = []
@@ -154,8 +194,62 @@ await check('mounts only user messages and visible assistant output runs', async
   assert.equal(document.querySelector('[data-key="command:4"]'), null)
   assert.equal(document.querySelector('[data-key="partial:5"]'), null)
   assert.equal(strip.getAttribute('role'), 'navigation')
-  assert.equal(Number.parseFloat(strip.style.height), 346)
+  assert.equal(Number.parseFloat(strip.style.height), 230)
   assert.equal(globalThis.__smcpDebug.hiddenReason, null)
+})
+
+await check('registers the first-level settings page directly after Agent Presets', async () => {
+  assert.equal(settingsSection.options.id, 'sm-context-piano')
+  assert.equal(settingsSection.options.order, 21)
+  assert.equal(settingsSection.options.label(), 'settings.nav')
+  assert.equal(settingsSection.options.inject().scope, settingsScope)
+
+  const React = requireHere('react')
+  const { act } = React
+  const { createRoot } = requireHere('react-dom/client')
+  const mount = document.createElement('div')
+  document.body.appendChild(mount)
+  const rootView = createRoot(mount)
+  await act(async () => {
+    rootView.render(React.createElement(settingsSection.component, {
+      ...settingsSection.options.inject(),
+      close: () => {},
+      t: key => key,
+    }))
+    await waitFrame()
+  })
+  assert.match(mount.textContent, /sm-context-piano/)
+  assert.match(mount.textContent, /v1\.0/)
+  assert.match(mount.textContent, /2026-08-19/)
+  assert.match(mount.textContent, /Jack·Huang/)
+  assert.match(mount.textContent, /dsh plugin --profile web add @linxin666\/dsh-sm-context-piano/)
+  assert.match(mount.textContent, /230px/)
+  assert.match(mount.querySelector('.smcp-settings-icon').getAttribute('src'), /^data:image\/png;base64,/)
+  await act(async () => { rootView.unmount() })
+  mount.remove()
+})
+
+await check('live settings resize, limit, disable, and restore the rail', async () => {
+  await settingsScope.set('keyHeight', 4)
+  await settingsScope.set('keyGap', 8)
+  await settingsScope.set('maxVisible', 5)
+  await waitFrame()
+  let strip = document.querySelector('.smcp-strip')
+  assert.equal(Number.parseFloat(strip.style.height), 36)
+  assert.ok([...document.querySelectorAll('.smcp-bar')].every(bar => Number.parseFloat(bar.style.height) === 4))
+
+  await settingsScope.set('enabled', false)
+  await waitFrame()
+  assert.equal(document.querySelector('.smcp-strip'), null)
+  await settingsScope.set('enabled', true)
+  await settingsScope.set('keyHeight', 2)
+  await settingsScope.set('keyGap', 12)
+  await settingsScope.set('maxVisible', 20)
+  await waitFrame()
+  await waitFrame()
+  strip = document.querySelector('.smcp-strip')
+  assert.ok(strip)
+  assert.equal(Number.parseFloat(strip.style.height), 230)
 })
 
 await check('keeps a compact fixed-pitch stack centered in the rail', () => {
@@ -163,8 +257,8 @@ await check('keeps a compact fixed-pitch stack centered in the rail', () => {
   const bars = [...document.querySelectorAll('.smcp-bar')].filter(bar => !bar.hidden)
   assert.ok(bars.every(bar => Number.parseFloat(bar.style.height) === 2))
   const centers = bars.map(bar => Number.parseFloat(bar.style.top) + Number.parseFloat(bar.style.height) / 2)
-  assert.equal(centers[1] - centers[0], 18)
-  assert.equal(centers[2] - centers[1], 18)
+  assert.equal(centers[1] - centers[0], 12)
+  assert.equal(centers[2] - centers[1], 12)
   assert.equal((centers[0] + centers[2]) / 2, Number.parseFloat(strip.style.height) / 2)
 })
 
