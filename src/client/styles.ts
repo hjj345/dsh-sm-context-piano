@@ -234,13 +234,13 @@ const CSS = `
 .smcp-settings-reset {
   margin-top: 14px;
   padding: 7px 12px;
-  border: 1px solid var(--dsw-alias-border-l2, rgba(0, 0, 0, .14));
+  border: 1px solid #161719;
   border-radius: 9px;
-  background: transparent;
-  color: inherit;
+  background: #161719;
+  color: #fff;
   cursor: pointer;
 }
-.smcp-settings-reset:hover:not(:disabled) { background: var(--dsw-alias-interactive-bg-hover, rgba(0, 0, 0, .05)); }
+.smcp-settings-reset:hover:not(:disabled) { background: #2c2d30; border-color: #2c2d30; }
 .smcp-settings-reset:disabled { opacity: .45; cursor: not-allowed; }
 .smcp-settings-error { margin: 10px 0 0; color: var(--dsw-alias-state-danger, #d93025); font-size: 12px; }
 .smcp-settings-note { margin: 10px 0 0; }
@@ -263,6 +263,10 @@ const CSS = `
   color: var(--dsw-alias-label-secondary, #73757a);
   font-size: 12px;
 }
+.smcp-settings-command > span {
+  color: var(--dsw-alias-label-primary, #202124);
+  font-weight: 600;
+}
 .smcp-settings-command-box {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -272,12 +276,12 @@ const CSS = `
   padding: 7px 7px 7px 12px;
   border: 1px solid var(--dsw-alias-border-l2, rgba(0, 0, 0, .10));
   border-radius: 10px;
-  background: var(--dsw-alias-bg-layer-1, rgba(0, 0, 0, .035));
+  background: #f3f3f4;
 }
 .smcp-settings-command-box code {
   display: block;
   min-width: 0;
-  color: var(--dsw-alias-label-primary, #202124);
+  color: #1a1c1f;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
   word-break: break-word;
@@ -285,15 +289,15 @@ const CSS = `
 .smcp-settings-command-box button {
   flex: none;
   padding: 5px 9px;
-  border: 1px solid var(--dsw-alias-border-l2, rgba(0, 0, 0, .12));
+  border: 1px solid #161719;
   border-radius: 7px;
-  background: var(--dsw-alias-bg-layer-2, #fff);
-  color: var(--dsw-alias-label-primary, #202124);
+  background: #161719;
+  color: #fff;
   cursor: pointer;
   font-size: 12px;
   white-space: nowrap;
 }
-.smcp-settings-command-box button:hover { background: var(--dsw-alias-interactive-bg-hover, rgba(0, 0, 0, .06)); }
+.smcp-settings-command-box button:hover { background: #2c2d30; border-color: #2c2d30; }
 .smcp-settings-command-box button:focus-visible { outline: 2px solid var(--dsw-alias-border-focus, #4c7ef3); outline-offset: 1px; }
 body[data-ds-dark-theme] .smcp-bar {
   --smcp-key: rgba(255, 255, 255, .32);

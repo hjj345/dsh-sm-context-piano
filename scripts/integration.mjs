@@ -239,6 +239,10 @@ await check('registers the first-level settings page directly after Agent Preset
   const styles = document.querySelector('#smcp-panel-styles').textContent
   assert.match(styles, /grid-template-columns: minmax\(0, 1fr\) auto/)
   assert.match(styles, /white-space: pre-wrap/)
+  assert.match(styles, /background: #f3f3f4/)
+  assert.match(styles, /\.smcp-settings-command > span[\s\S]*font-weight: 600/)
+  assert.match(styles, /\.smcp-settings-reset[\s\S]*background: #161719[\s\S]*color: #fff/)
+  assert.match(styles, /\.smcp-settings-command-box button[\s\S]*background: #161719[\s\S]*color: #fff/)
   assert.match(styles, /@media \(max-width: 520px\)/)
   assert.match(styles, /@media \(max-width: 360px\)/)
   await act(async () => { rootView.unmount() })
