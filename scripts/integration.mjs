@@ -161,7 +161,7 @@ await check('mounts only user messages and visible assistant output runs', async
 await check('keeps a compact fixed-pitch stack centered in the rail', () => {
   const strip = document.querySelector('.smcp-strip')
   const bars = [...document.querySelectorAll('.smcp-bar')].filter(bar => !bar.hidden)
-  assert.ok(bars.every(bar => Number.parseFloat(bar.style.height) === 3))
+  assert.ok(bars.every(bar => Number.parseFloat(bar.style.height) === 2))
   const centers = bars.map(bar => Number.parseFloat(bar.style.top) + Number.parseFloat(bar.style.height) / 2)
   assert.equal(centers[1] - centers[0], 18)
   assert.equal(centers[2] - centers[1], 18)
