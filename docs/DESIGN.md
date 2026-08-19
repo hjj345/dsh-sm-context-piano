@@ -145,7 +145,8 @@
     src/client/tooltip.ts    安全预览 DOM
     src/client/styles.ts     Codex 式琴键与浮层样式
     src/client/locales.ts    导航可访问名称
-    images/sm-context-piano-icon.png  设置页黑色透明 PNG 图标
+    images/sm-context-piano-icon.png  保留的原始黑色透明 PNG 图标
+    images/sm-context-piano-settings-icon.png  设置页白底黑框 PNG 图标
     scripts/grouping.mjs     输出分段和窗口纯逻辑测试
     scripts/smoke.mjs        构建产物测试
     scripts/integration.mjs  jsdom 交互集成测试

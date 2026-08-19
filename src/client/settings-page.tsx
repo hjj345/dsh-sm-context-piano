@@ -8,7 +8,7 @@ import type {
   PropsLocale,
   PropsRuntime,
 } from '@deepseek-ai/dsh-client-ui-slots'
-import iconUrl from '../../images/sm-context-piano-icon.png'
+import iconUrl from '../../images/sm-context-piano-settings-icon.png'
 import {
   DEFAULT_SETTINGS,
   SETTINGS_LIMITS,
@@ -79,6 +79,7 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
   const settings = decodeSettings(snapshot.value) ?? DEFAULT_SETTINGS
   const [error, setError] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
   const disabled = !snapshot.writable
 
   const write = (field: keyof PianoSettings, value: boolean | number): void => {
@@ -94,6 +95,19 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
         }
       } catch {
         setError(t('settings.writeError'))
+      }
+    })()
+  }
+  const copyCommand = (): void => {
+    setError(null)
+    setCopied(false)
+    void (async () => {
+      try {
+        if (window.navigator.clipboard === undefined) throw new Error('clipboard unavailable')
+        await window.navigator.clipboard.writeText(INSTALL_COMMAND)
+        setCopied(true)
+      } catch {
+        setError(t('settings.copyError'))
       }
     })()
   }
@@ -173,7 +187,12 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
         </dl>
         <div className="smcp-settings-command">
           <span>{t('settings.install')}</span>
-          <code>{INSTALL_COMMAND}</code>
+          <div className="smcp-settings-command-box">
+            <code>{INSTALL_COMMAND}</code>
+            <button type="button" onClick={copyCommand}>
+              {copied ? t('settings.copied') : t('settings.copy')}
+            </button>
+          </div>
         </div>
       </section>
     </div>

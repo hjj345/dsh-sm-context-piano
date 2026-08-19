@@ -210,6 +210,11 @@ await check('registers the first-level settings page directly after Agent Preset
   const mount = document.createElement('div')
   document.body.appendChild(mount)
   const rootView = createRoot(mount)
+  let copiedCommand = ''
+  Object.defineProperty(window.navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText: async text => { copiedCommand = text } },
+  })
   await act(async () => {
     rootView.render(React.createElement(settingsSection.component, {
       ...settingsSection.options.inject(),
@@ -225,6 +230,12 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(mount.textContent, /dsh plugin --profile web add @linxin666\/dsh-sm-context-piano/)
   assert.match(mount.textContent, /230px/)
   assert.match(mount.querySelector('.smcp-settings-icon').getAttribute('src'), /^data:image\/png;base64,/)
+  await act(async () => {
+    mount.querySelector('.smcp-settings-command-box button').click()
+    await Promise.resolve()
+  })
+  assert.equal(copiedCommand, 'dsh plugin --profile web add @linxin666/dsh-sm-context-piano')
+  assert.match(mount.querySelector('.smcp-settings-command-box button').textContent, /settings\.copied/)
   await act(async () => { rootView.unmount() })
   mount.remove()
 })

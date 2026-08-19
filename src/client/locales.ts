@@ -25,6 +25,9 @@ const zh = {
   'settings.email': '邮箱',
   'settings.unpublished': '待公布',
   'settings.install': '安装命令',
+  'settings.copy': '复制',
+  'settings.copied': '已复制',
+  'settings.copyError': '复制失败，请手动选择命令。',
 } as const
 
 const en: Record<keyof typeof zh, string> = {
@@ -52,6 +55,9 @@ const en: Record<keyof typeof zh, string> = {
   'settings.email': 'Email',
   'settings.unpublished': 'To be announced',
   'settings.install': 'Install command',
+  'settings.copy': 'Copy',
+  'settings.copied': 'Copied',
+  'settings.copyError': 'Copy failed. Select the command manually.',
 }
 
 export type SmContextPianoKey = keyof typeof zh
