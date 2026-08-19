@@ -255,18 +255,6 @@ const CSS = `
 .smcp-settings-about dt { color: var(--dsw-alias-label-secondary, #73757a); }
 .smcp-settings-about dd { margin: 0; overflow-wrap: anywhere; }
 .smcp-settings-about a { color: inherit; }
-.smcp-settings-command {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  margin-top: 10px;
-  color: var(--dsw-alias-label-secondary, #73757a);
-  font-size: 12px;
-}
-.smcp-settings-command > span {
-  color: var(--dsw-alias-label-primary, #202124);
-  font-weight: 600;
-}
 .smcp-settings-command-box {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -277,6 +265,7 @@ const CSS = `
   border: 1px solid var(--dsw-alias-border-l2, rgba(0, 0, 0, .10));
   border-radius: 10px;
   background: #f3f3f4;
+  font-size: 12px;
 }
 .smcp-settings-command-box code {
   display: block;

@@ -185,14 +185,15 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
           <div><dt>{t('settings.email')}</dt><dd><a href={`mailto:${EMAIL}`}>{EMAIL}</a></dd></div>
           <div><dt>GitHub</dt><dd>{t('settings.unpublished')}</dd></div>
         </dl>
-        <div className="smcp-settings-command">
-          <span>{t('settings.install')}</span>
-          <div className="smcp-settings-command-box">
-            <code>{INSTALL_COMMAND}</code>
-            <button type="button" onClick={copyCommand}>
-              {copied ? t('settings.copied') : t('settings.copy')}
-            </button>
-          </div>
+      </section>
+
+      <section className="smcp-settings-card smcp-settings-install">
+        <h2>{t('settings.install')}</h2>
+        <div className="smcp-settings-command-box">
+          <code>{INSTALL_COMMAND}</code>
+          <button type="button" onClick={copyCommand}>
+            {copied ? t('settings.copied') : t('settings.copy')}
+          </button>
         </div>
       </section>
     </div>
