@@ -6,7 +6,7 @@ import type { KeyDescriptor } from './keys.ts'
 export function updateTooltip(tooltip: HTMLElement, descriptor: KeyDescriptor): void {
   tooltip.textContent = ''
 
-  const title = document.createElement('strong')
+  const title = document.createElement('div')
   title.className = 'smcp-tooltip-title'
   title.textContent = descriptor.title
   tooltip.appendChild(title)

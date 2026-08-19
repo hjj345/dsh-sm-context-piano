@@ -69,7 +69,7 @@ const CSS = `
   overflow: hidden;
   color: var(--dsw-alias-label-primary, #202124);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: 400;
   line-height: 21px;
   text-overflow: ellipsis;
   white-space: nowrap;

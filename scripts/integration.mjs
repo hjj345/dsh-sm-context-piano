@@ -161,6 +161,7 @@ await check('mounts only user messages and visible assistant output runs', async
 await check('keeps a compact fixed-pitch stack centered in the rail', () => {
   const strip = document.querySelector('.smcp-strip')
   const bars = [...document.querySelectorAll('.smcp-bar')].filter(bar => !bar.hidden)
+  assert.ok(bars.every(bar => Number.parseFloat(bar.style.height) === 3))
   const centers = bars.map(bar => Number.parseFloat(bar.style.top) + Number.parseFloat(bar.style.height) / 2)
   assert.equal(centers[1] - centers[0], 18)
   assert.equal(centers[2] - centers[1], 18)
@@ -182,6 +183,9 @@ await check('the full rail continuously drives the hover wave and preview', asyn
   assert.ok(Number.parseFloat(bars[1].style.width) > Number.parseFloat(bars[0].style.width))
   const tooltip = document.querySelector('.smcp-tooltip')
   assert.ok(tooltip.classList.contains('smcp-tooltip-visible'))
+  const title = tooltip.querySelector('.smcp-tooltip-title')
+  assert.equal(title.tagName, 'DIV')
+  assert.equal(window.getComputedStyle(title).fontWeight, '400')
   assert.match(tooltip.textContent, /第二个对话节点/)
   assert.doesNotMatch(tooltip.textContent, /token|工具|read_file|assistant/i)
 })
