@@ -236,6 +236,11 @@ await check('registers the first-level settings page directly after Agent Preset
   })
   assert.equal(copiedCommand, 'dsh plugin --profile web add @linxin666/dsh-sm-context-piano')
   assert.match(mount.querySelector('.smcp-settings-command-box button').textContent, /settings\.copied/)
+  const styles = document.querySelector('#smcp-panel-styles').textContent
+  assert.match(styles, /grid-template-columns: minmax\(0, 1fr\) auto/)
+  assert.match(styles, /white-space: pre-wrap/)
+  assert.match(styles, /@media \(max-width: 520px\)/)
+  assert.match(styles, /@media \(max-width: 360px\)/)
   await act(async () => { rootView.unmount() })
   mount.remove()
 })
