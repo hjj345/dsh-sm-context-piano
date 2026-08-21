@@ -173,6 +173,7 @@ window.__ModuleLoader__.load({
 		const RELEASE_DATE = "2026-08-21";
 		const AUTHOR = "Jack·Huang";
 		const EMAIL = "jack698698@gmail.com";
+		const GITHUB_URL = "https://github.com/hjj345/dsh-sm-context-piano";
 		const INSTALL_COMMAND = "dsh plugin --profile web add @hjj345345/dsh-sm-context-piano";
 		const LANGUAGE_OPTIONS = [
 			{
@@ -404,7 +405,12 @@ window.__ModuleLoader__.load({
 								href: `mailto:${EMAIL}`,
 								children: EMAIL
 							}) })] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "GitHub" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: t("settings.unpublished") })] }),
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "GitHub" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("a", {
+								href: GITHUB_URL,
+								target: "_blank",
+								rel: "noreferrer",
+								children: GITHUB_URL
+							}) })] }),
 							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "npm" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: t("settings.unpublished") })] })
 						] })]
 					}),

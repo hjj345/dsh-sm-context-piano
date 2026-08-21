@@ -4,6 +4,8 @@ English documentation · [简体中文（默认）](README.md)
 
 [![version](https://img.shields.io/badge/version-1.0.0-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
+GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
+
 A Codex-style conversation navigator for the DeepSeek Harness Web GUI.
 
 It adds a compact rail of horizontal keys beside the transcript and condenses a long conversation into semantic nodes that can be previewed and located. Users can scan the conversation structure, hover for summaries, and click or use the keyboard to jump to a target paragraph instead of repeatedly dragging the scrollbar to recover context.
@@ -104,7 +106,7 @@ The defaults produce `(20 - 1) × 12 + 2 = 230px`.
 
 ### About and install command
 
-The About card shows version, release date, author, email, and the current GitHub/npm status. The Install Command card displays the complete command in its own code surface and provides a one-click copy button.
+The About card shows version, release date, author, email, the GitHub repository link, and the current npm status. The Install Command card displays the complete command in its own code surface and provides a one-click copy button.
 
 ## How it works
 

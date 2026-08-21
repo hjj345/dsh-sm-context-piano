@@ -244,8 +244,12 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.equal(commandBox.closest('.smcp-settings-about'), null)
   const aboutRows = [...mount.querySelectorAll('.smcp-settings-about dl > div')]
     .map(row => [row.querySelector('dt').textContent, row.querySelector('dd').textContent])
-  assert.deepEqual(aboutRows.at(-2), ['GitHub', '待公布'])
+  assert.deepEqual(aboutRows.at(-2), ['GitHub', 'https://github.com/hjj345/dsh-sm-context-piano'])
   assert.deepEqual(aboutRows.at(-1), ['npm', '待公布'])
+  const githubLink = mount.querySelector('.smcp-settings-about a[href^="https://github.com/"]')
+  assert.equal(githubLink.href, 'https://github.com/hjj345/dsh-sm-context-piano')
+  assert.equal(githubLink.target, '_blank')
+  assert.equal(githubLink.rel, 'noreferrer')
   await act(async () => {
     languageSelect.value = 'en'
     languageSelect.dispatchEvent(new window.Event('change', { bubbles: true }))

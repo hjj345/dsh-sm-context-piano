@@ -70,6 +70,11 @@
     "README.en.md",
     "LICENSE"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hjj345/dsh-sm-context-piano"
+  },
+  "homepage": "https://github.com/hjj345/dsh-sm-context-piano",
   "license": "MIT",
   "scripts": {
     "build": "tsc -b && tsdown -c tsdown.host.config.mjs --config-loader tsx && tsdown -c tsdown.client.config.mjs --config-loader tsx && node scripts/wrap-client.mjs",
