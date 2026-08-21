@@ -24,7 +24,7 @@ import { translate } from './locales.ts'
 import type { SmContextPianoKey } from './locales.ts'
 
 const VERSION = 'v1.0'
-const RELEASE_DATE = '2026-08-19'
+const RELEASE_DATE = '2026-08-21'
 const AUTHOR = 'Jack·Huang'
 const EMAIL = 'jack698698@gmail.com'
 const INSTALL_COMMAND = 'dsh plugin --profile web add @linxin666/dsh-sm-context-piano'
@@ -213,6 +213,7 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
           <div><dt>{t('settings.author')}</dt><dd>{AUTHOR}</dd></div>
           <div><dt>{t('settings.email')}</dt><dd><a href={`mailto:${EMAIL}`}>{EMAIL}</a></dd></div>
           <div><dt>GitHub</dt><dd>{t('settings.unpublished')}</dd></div>
+          <div><dt>npm</dt><dd>{t('settings.unpublished')}</dd></div>
         </dl>
       </section>
 

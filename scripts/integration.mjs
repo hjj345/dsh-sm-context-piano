@@ -225,7 +225,7 @@ await check('registers the first-level settings page directly after Agent Preset
   })
   assert.match(mount.textContent, /sm-context-piano/)
   assert.match(mount.textContent, /v1\.0/)
-  assert.match(mount.textContent, /2026-08-19/)
+  assert.match(mount.textContent, /2026-08-21/)
   assert.match(mount.textContent, /Jack·Huang/)
   assert.match(mount.textContent, /dsh plugin --profile web add @linxin666\/dsh-sm-context-piano/)
   assert.match(mount.textContent, /230px/)
@@ -242,6 +242,10 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.ok(installCard)
   assert.equal(installCard.querySelector('h2').textContent, '安装命令')
   assert.equal(commandBox.closest('.smcp-settings-about'), null)
+  const aboutRows = [...mount.querySelectorAll('.smcp-settings-about dl > div')]
+    .map(row => [row.querySelector('dt').textContent, row.querySelector('dd').textContent])
+  assert.deepEqual(aboutRows.at(-2), ['GitHub', '待公布'])
+  assert.deepEqual(aboutRows.at(-1), ['npm', '待公布'])
   await act(async () => {
     languageSelect.value = 'en'
     languageSelect.dispatchEvent(new window.Event('change', { bubbles: true }))

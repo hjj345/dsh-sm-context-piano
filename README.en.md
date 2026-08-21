@@ -33,7 +33,7 @@ Settings are persisted by DSH and take effect immediately:
 - Key center pitch: 6–18px, default 12px;
 - Maximum visible keys: 5–30, default 20.
 
-The language choice applies only to this plugin's settings page, updates immediately, and persists across restarts. The DSH section name and the navigator's accessibility label continue to follow the global DSH locale. The rail height is derived automatically as `(maximum - 1) × pitch + key thickness`; the defaults produce `(20 - 1) × 12 + 2 = 230px`. The page also offers reset-to-defaults and shows version `v1.0`, release date, author, email, installation command, and the currently unpublished GitHub status.
+The language choice applies only to this plugin's settings page, updates immediately, and persists across restarts. The DSH section name and the navigator's accessibility label continue to follow the global DSH locale. The rail height is derived automatically as `(maximum - 1) × pitch + key thickness`; the defaults produce `(20 - 1) × 12 + 2 = 230px`. The page also offers reset-to-defaults and shows version `v1.0`, release date, author, email, installation command, and the currently unpublished GitHub and npm status.
 
 ## Install
 
@@ -49,7 +49,7 @@ dsh plugin --profile web add link:D:/android-project/dsh-sm-context-piano-2026.0
 
 Build the package, then refresh or reopen the DSH Web GUI.
 
-Current version: `v1.0` (released `2026-08-19`).
+Current version: `v1.0` (released `2026-08-21`).
 
 ## Development
 
