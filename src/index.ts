@@ -11,6 +11,7 @@ import {
 } from './core/config.ts'
 
 const PianoSettingsSchema = z.object({
+  language: z.union([z.const('zh'), z.const('en'), z.const('zh-TW')]).default(DEFAULT_SETTINGS.language),
   enabled: z.boolean().default(DEFAULT_SETTINGS.enabled),
   keyHeight: z.number().default(DEFAULT_SETTINGS.keyHeight),
   keyGap: z.number().default(DEFAULT_SETTINGS.keyGap),

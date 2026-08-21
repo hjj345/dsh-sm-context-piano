@@ -46,7 +46,6 @@ export function apply(ctx: ClientContext): void {
     id: 'sm-context-piano',
     order: 21,
     label: () => t('settings.nav'),
-    locale: NS,
     inject: () => ({ scope }),
   }, PianoSettingsPage))
 

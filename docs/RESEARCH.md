@@ -28,7 +28,7 @@ DeepSeek Harness 采用插件化架构。Web profile 通过 bundle row 加载包
 
 DeepSeek Harness 通过 `settings.section` 允许插件注册一级设置页，通过 `ctx.settingsScope` 将浏览器设置表单绑定到宿主 settings namespace。本插件使用排序值 21，因此位于排序值 20 的官方 Agent Presets 后方；未被官方导航图标表识别的插件 id 由设置外壳统一显示齿轮图标。
 
-宿主注册 `sm-context-piano` namespace 和强校验 schema，客户端只通过该 scope 读取、set 或 unset，不建立第二套 localStorage 配置。页内 PNG 图标以 data URL 内嵌客户端 bundle，避免 DSH CJS 模块加载器下相对资源地址错误解析到应用根目录。
+宿主注册 `sm-context-piano` namespace 和强校验 schema，客户端只通过该 scope 读取、set 或 unset，不建立第二套 localStorage 配置。插件语言也存储在该 namespace 中，但只驱动设置页内部三语字典；一级导航和琴键轨道无障碍名称继续使用 DSH 全局 locale。页内 PNG 图标以 data URL 内嵌客户端 bundle，避免 DSH CJS 模块加载器下相对资源地址错误解析到应用根目录。
 
 ## 5. 为什么宿主端只注册设置
 

@@ -23,16 +23,17 @@ This is navigation-only UI. It never mutates sessions, trims model context, inje
 
 ## Settings
 
-Open the first-level **sm-context-piano** entry in DSH Settings. It is ordered directly after the official **Agent Presets** entry. Its navigation icon intentionally follows DSH's default gear fallback for third-party setting IDs.
+Open the first-level **sm-context-piano** entry in DSH Settings. It is ordered directly after the official **Agent Presets** entry. Its name follows the global DSH locale, and its navigation icon intentionally follows DSH's default gear fallback for third-party setting IDs.
 
 Settings are persisted by DSH and take effect immediately:
 
 - Enable or disable the navigator;
+- Settings-page language: Simplified Chinese (default), English, or Traditional Chinese;
 - Key thickness: 1–4px, default 2px;
 - Key center pitch: 6–18px, default 12px;
 - Maximum visible keys: 5–30, default 20.
 
-The rail height is derived automatically as `(maximum - 1) × pitch + key thickness`; the defaults produce `(20 - 1) × 12 + 2 = 230px`. The page also offers reset-to-defaults and shows version `v1.0`, release date, author, email, installation command, and the currently unpublished GitHub status.
+The language choice applies only to this plugin's settings page, updates immediately, and persists across restarts. The DSH section name and the navigator's accessibility label continue to follow the global DSH locale. The rail height is derived automatically as `(maximum - 1) × pitch + key thickness`; the defaults produce `(20 - 1) × 12 + 2 = 230px`. The page also offers reset-to-defaults and shows version `v1.0`, release date, author, email, installation command, and the currently unpublished GitHub status.
 
 ## Install
 

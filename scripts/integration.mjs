@@ -125,7 +125,7 @@ let currentSession = 's1'
 let listSubscriber = () => {}
 let settingsSnapshot = {
   status: 'ready', writable: true, revision: 1,
-  value: { enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 },
+  value: { language: 'zh', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 },
 }
 const settingsSubscribers = new Set()
 const publishSettings = (field, value) => {
@@ -141,7 +141,7 @@ const settingsScope = {
   subscribe: fn => { settingsSubscribers.add(fn); return () => { settingsSubscribers.delete(fn) } },
   set: async (field, value) => { publishSettings(field, value) },
   unset: async field => {
-    const defaults = { enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }
+    const defaults = { language: 'zh', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }
     publishSettings(field, defaults[field])
   },
 }
@@ -229,23 +229,60 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(mount.textContent, /Jack·Huang/)
   assert.match(mount.textContent, /dsh plugin --profile web add @linxin666\/dsh-sm-context-piano/)
   assert.match(mount.textContent, /230px/)
+  assert.match(mount.textContent, /通用设置/)
+  assert.match(mount.textContent, /显示设置/)
+  assert.match(mount.textContent, /关于插件/)
   assert.match(mount.querySelector('.smcp-settings-icon').getAttribute('src'), /^data:image\/png;base64,/)
+  const languageSelect = mount.querySelector('.smcp-settings-select')
+  assert.equal(languageSelect.value, 'zh')
+  assert.deepEqual([...languageSelect.options].map(option => option.textContent), ['简体中文', 'English', '繁體中文'])
   const commandBox = mount.querySelector('.smcp-settings-command-box')
   const installCard = commandBox.closest('.smcp-settings-install')
-  assert.equal(mount.querySelectorAll('.smcp-settings-card').length, 3)
+  assert.equal(mount.querySelectorAll('.smcp-settings-card').length, 4)
   assert.ok(installCard)
-  assert.equal(installCard.querySelector('h2').textContent, 'settings.install')
+  assert.equal(installCard.querySelector('h2').textContent, '安装命令')
   assert.equal(commandBox.closest('.smcp-settings-about'), null)
+  await act(async () => {
+    languageSelect.value = 'en'
+    languageSelect.dispatchEvent(new window.Event('change', { bubbles: true }))
+    await Promise.resolve()
+  })
+  assert.equal(settingsSnapshot.value.language, 'en')
+  assert.match(mount.textContent, /General settings/)
+  assert.match(mount.textContent, /Display/)
+  assert.match(mount.textContent, /About/)
+  assert.match(mount.textContent, /Install command/)
+  assert.equal(settingsSection.options.label(), 'settings.nav')
+  assert.equal(document.querySelector('.smcp-strip').getAttribute('aria-label'), 'nav.aria')
+  await act(async () => {
+    languageSelect.value = 'zh-TW'
+    languageSelect.dispatchEvent(new window.Event('change', { bubbles: true }))
+    await Promise.resolve()
+  })
+  assert.equal(settingsSnapshot.value.language, 'zh-TW')
+  assert.match(mount.textContent, /通用設定/)
+  assert.match(mount.textContent, /顯示設定/)
+  assert.match(mount.textContent, /關於外掛/)
+  assert.match(mount.textContent, /安裝命令/)
+  assert.equal(settingsSection.options.label(), 'settings.nav')
+  assert.equal(document.querySelector('.smcp-strip').getAttribute('aria-label'), 'nav.aria')
+  await act(async () => {
+    mount.querySelector('.smcp-settings-reset').click()
+    await waitFrame()
+  })
+  assert.equal(settingsSnapshot.value.language, 'zh')
+  assert.match(mount.textContent, /显示设置/)
   await act(async () => {
     commandBox.querySelector('button').click()
     await Promise.resolve()
   })
   assert.equal(copiedCommand, 'dsh plugin --profile web add @linxin666/dsh-sm-context-piano')
-  assert.match(mount.querySelector('.smcp-settings-command-box button').textContent, /settings\.copied/)
+  assert.equal(mount.querySelector('.smcp-settings-command-box button').textContent, '已复制')
   const styles = document.querySelector('#smcp-panel-styles').textContent
   assert.match(styles, /grid-template-columns: minmax\(0, 1fr\) auto/)
   assert.match(styles, /white-space: pre-wrap/)
   assert.match(styles, /background: #f3f3f4/)
+  assert.match(styles, /\.smcp-settings-select[\s\S]*border-radius: 9px/)
   assert.match(styles, /\.smcp-settings-reset[\s\S]*background: #161719[\s\S]*color: #fff/)
   assert.match(styles, /\.smcp-settings-command-box button[\s\S]*background: #161719[\s\S]*color: #fff/)
   assert.match(styles, /@media \(max-width: 520px\)/)

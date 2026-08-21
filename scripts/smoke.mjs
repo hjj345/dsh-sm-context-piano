@@ -29,8 +29,9 @@ check('host registers one live settings namespace', () => {
   })
   assert.equal(registration[0], 'sm-context-piano')
   assert.equal(registration[2].applies, 'live')
-  assert.doesNotThrow(() => registration[2].validate({ enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }))
-  assert.throws(() => registration[2].validate({ enabled: true, keyHeight: 5, keyGap: 12, maxVisible: 20 }))
+  assert.doesNotThrow(() => registration[2].validate({ language: 'zh', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }))
+  assert.throws(() => registration[2].validate({ language: 'fr', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }))
+  assert.throws(() => registration[2].validate({ language: 'zh', enabled: true, keyHeight: 5, keyGap: 12, maxVisible: 20 }))
 })
 
 console.log('== client half ==')
@@ -69,7 +70,7 @@ check('client apply registers locale, settings section, and three disposable eff
   const scope = {
     getSnapshot: () => ({
       status: 'ready', writable: true, revision: 1,
-      value: { enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 },
+      value: { language: 'zh', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 },
     }),
     subscribe: () => () => {},
     set: async () => {},

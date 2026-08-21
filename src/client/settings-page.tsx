@@ -5,7 +5,6 @@ import type {
 } from '@deepseek-ai/dsh-client-runtime/client'
 import type {
   InjectFace,
-  PropsLocale,
   PropsRuntime,
 } from '@deepseek-ai/dsh-client-ui-slots'
 import iconUrl from '../../images/sm-context-piano-settings-icon.png'
@@ -13,18 +12,28 @@ import {
   DEFAULT_SETTINGS,
   SETTINGS_LIMITS,
   decodeSettings,
+  isPianoLanguage,
   railHeight,
 } from '../core/config.ts'
 import type {
+  PianoLanguage,
   PianoSettings,
   PianoSettingsSource,
 } from '../core/config.ts'
+import { translate } from './locales.ts'
+import type { SmContextPianoKey } from './locales.ts'
 
 const VERSION = 'v1.0'
 const RELEASE_DATE = '2026-08-19'
 const AUTHOR = 'Jack·Huang'
 const EMAIL = 'jack698698@gmail.com'
 const INSTALL_COMMAND = 'dsh plugin --profile web add @linxin666/dsh-sm-context-piano'
+const LANGUAGE_OPTIONS: readonly { value: PianoLanguage; label: string }[] = [
+  { value: 'zh', label: '简体中文' },
+  { value: 'en', label: 'English' },
+  { value: 'zh-TW', label: '繁體中文' },
+]
+type SettingsErrorKey = 'settings.writeError' | 'settings.copyError'
 
 export interface PianoSettingsPageInjected {
   scope: SettingsScope<PianoSettings>
@@ -32,7 +41,6 @@ export interface PianoSettingsPageInjected {
 
 export type PianoSettingsPageProps =
   PropsRuntime<'settings.section'>
-  & PropsLocale<'sm-context-piano'>
   & InjectFace<PianoSettingsPageInjected>
 
 export function createPianoSettingsSource(scope: SettingsScope<PianoSettings>): PianoSettingsSource {
@@ -73,28 +81,29 @@ function RangeRow(props: RangeRowProps): ReactNode {
 }
 
 export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
-  const { scope, t } = props
+  const { scope } = props
   const subscribe = useCallback((listener: () => void) => scope.subscribe(listener), [scope])
   const getSnapshot = useCallback(() => scope.getSnapshot(), [scope])
   const snapshot = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
   const settings = decodeSettings(snapshot.value) ?? DEFAULT_SETTINGS
-  const [error, setError] = useState<string | null>(null)
+  const t = (key: SmContextPianoKey): string => translate(settings.language, key)
+  const [error, setError] = useState<SettingsErrorKey | null>(null)
   const [copied, setCopied] = useState(false)
   const disabled = !snapshot.writable
 
-  const write = (field: keyof PianoSettings, value: boolean | number): void => {
+  const write = <K extends keyof PianoSettings>(field: K, value: PianoSettings[K]): void => {
     setError(null)
-    void scope.set(field, value).catch(() => { setError(t('settings.writeError')) })
+    void scope.set(field, value).catch(() => { setError('settings.writeError') })
   }
   const reset = (): void => {
     setError(null)
     void (async () => {
       try {
-        for (const field of ['enabled', 'keyHeight', 'keyGap', 'maxVisible'] as const) {
+        for (const field of ['language', 'enabled', 'keyHeight', 'keyGap', 'maxVisible'] as const) {
           await scope.unset(field)
         }
       } catch {
-        setError(t('settings.writeError'))
+        setError('settings.writeError')
       }
     })()
   }
@@ -107,7 +116,7 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
         await window.navigator.clipboard.writeText(INSTALL_COMMAND)
         setCopied(true)
       } catch {
-        setError(t('settings.copyError'))
+        setError('settings.copyError')
       }
     })()
   }
@@ -129,6 +138,27 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
           />
           <span aria-hidden="true" />
           <b>{settings.enabled ? t('settings.enabled') : t('settings.disabled')}</b>
+        </label>
+      </section>
+
+      {error !== null && <p className="smcp-settings-error smcp-settings-page-error" role="alert">{t(error)}</p>}
+
+      <section className="smcp-settings-card smcp-settings-general">
+        <h2>{t('settings.general')}</h2>
+        <label className="smcp-settings-row smcp-settings-language">
+          <span className="smcp-settings-label">语言/Language</span>
+          <select
+            className="smcp-settings-select"
+            value={settings.language}
+            disabled={disabled}
+            onChange={(event) => {
+              if (isPianoLanguage(event.target.value)) write('language', event.target.value)
+            }}
+          >
+            {LANGUAGE_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
         </label>
       </section>
 
@@ -173,7 +203,6 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
         </button>
         {snapshot.status === 'loading' && <p className="smcp-settings-note">{t('settings.loading')}</p>}
         {snapshot.status === 'unavailable' && <p className="smcp-settings-note">{t('settings.unavailable')}</p>}
-        {error !== null && <p className="smcp-settings-error">{error}</p>}
       </section>
 
       <section className="smcp-settings-card smcp-settings-about">

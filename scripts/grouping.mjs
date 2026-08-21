@@ -65,12 +65,14 @@ assert.equal((positions[0] + positions[positions.length - 1]) / 2, 115)
 
 assert.equal(railHeight(DEFAULT_SETTINGS), 230)
 assert.deepEqual(decodeSettings({ enabled: false, keyHeight: 4, keyGap: 6, maxVisible: 5 }), {
-  enabled: false, keyHeight: 4, keyGap: 6, maxVisible: 5,
+  language: 'zh', enabled: false, keyHeight: 4, keyGap: 6, maxVisible: 5,
 })
-assert.deepEqual(decodeSettings({ enabled: true, keyHeight: 99, keyGap: 0, maxVisible: 99 }), {
-  enabled: true, keyHeight: 4, keyGap: 6, maxVisible: 30,
+assert.deepEqual(decodeSettings({ language: 'zh-TW', enabled: true, keyHeight: 99, keyGap: 0, maxVisible: 99 }), {
+  language: 'zh-TW', enabled: true, keyHeight: 4, keyGap: 6, maxVisible: 30,
 })
+assert.equal(decodeSettings({ language: 'fr' }).language, 'zh')
 assert.doesNotThrow(() => validateSettings(DEFAULT_SETTINGS))
+assert.throws(() => validateSettings({ ...DEFAULT_SETTINGS, language: 'fr' }))
 assert.throws(() => validateSettings({ ...DEFAULT_SETTINGS, keyGap: 5 }))
 
-console.log('  ok  visible output segmentation, fixed window, and settings bounds (19 assertions)')
+console.log('  ok  visible output segmentation, fixed window, and settings bounds (21 assertions)')
