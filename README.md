@@ -8,6 +8,10 @@ GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj
 
 npm：[@hjj345345/dsh-sm-context-piano](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano)
 
+<p align="center">
+  <img src="images/sm-context-piano-settings-icon.png" alt="琴键导航插件图标" width="180">
+</p>
+
 DeepSeek Harness Web GUI 的 Codex 式对话琴键导航插件。
 
 它在聊天正文左侧增加一组紧凑的横线琴键，将长对话压缩为可预览、可定位的语义节点。用户可以沿琴键快速浏览对话结构，悬停查看摘要，点击或使用键盘跳转到目标段落，而不必反复拖动滚动条寻找上下文。
@@ -45,6 +49,22 @@ DeepSeek Harness Web GUI 的 Codex 式对话琴键导航插件。
 - **键盘与辅助技术支持**：支持完整键盘选择、跳转和关闭预览；琴键轨道使用导航角色和无障碍名称。
 - **主题与动效偏好**：跟随 DSH 明暗主题，并遵守 `prefers-reduced-motion`。
 - **完整卸载**：插件卸载后移除 DOM、样式、监听器、Observer、定时器和动画帧，不残留页面副作用。
+
+## 实际应用效果
+
+插件会在对话正文左侧提供琴键导航，并通过悬停预览和阅读位置同步帮助用户快速浏览长对话。
+
+<p align="center">
+  <img src="images/plugin-Application%20Effect-1.png" alt="对话页面中的琴键导航" width="900">
+</p>
+
+<p align="center">
+  <img src="images/plugin-Application%20Effect-2.png" alt="琴键导航悬停预览" width="900">
+</p>
+
+<p align="center">
+  <img src="images/plugin-Application%20Effect-3.png" alt="琴键导航定位长文档内容" width="900">
+</p>
 
 ## 快速开始
 
@@ -109,6 +129,22 @@ dsh plugin --profile web add link:C:/path/to/dsh-sm-context-piano
 ### 关于插件与安装命令
 
 “关于插件”卡片显示版本、发布日期、作者、邮箱、GitHub 仓库链接以及正式 npm 包名与链接。“安装命令”使用独立代码卡片展示完整命令，并提供一键复制按钮。
+
+### 设置页面截图
+
+以下截图分别展示中文设置页、插件启用与显示控制，以及 English 界面。
+
+<p align="center">
+  <img src="images/plugin-2.png" alt="中文插件设置与显示控制" width="900">
+</p>
+
+<p align="center">
+  <img src="images/plugin-1.png" alt="中文关于插件与安装命令" width="900">
+</p>
+
+<p align="center">
+  <img src="images/plugin-English.png" alt="English 插件设置页" width="900">
+</p>
 
 ## 工作原理
 

@@ -2,3 +2,5 @@ node_modules/
 lib/
 *.tsbuildinfo
 .codegraph/
+/images/sm-context-piano-icon.png
+/Relese-command/github/

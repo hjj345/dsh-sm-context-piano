@@ -8,6 +8,10 @@ GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj3
 
 npm: [@hjj345345/dsh-sm-context-piano](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano)
 
+<p align="center">
+  <img src="images/sm-context-piano-settings-icon.png" alt="sm-context-piano plugin icon" width="180">
+</p>
+
 A Codex-style conversation navigator for the DeepSeek Harness Web GUI.
 
 It adds a compact rail of horizontal keys beside the transcript and condenses a long conversation into semantic nodes that can be previewed and located. Users can scan the conversation structure, hover for summaries, and click or use the keyboard to jump to a target paragraph instead of repeatedly dragging the scrollbar to recover context.
@@ -45,6 +49,22 @@ The number of keys therefore does not simply equal the number of rendered rows. 
 - **Keyboard and assistive-technology support** — keyboard selection, activation, and dismissal are supported; the rail exposes a navigation role and accessible name.
 - **Theme and motion preferences** — follows DSH light/dark styling and respects `prefers-reduced-motion`.
 - **Complete teardown** — unloading removes DOM, styles, listeners, observers, timers, and animation frames without leaving page side effects.
+
+## Real-world application
+
+The plugin adds a key navigator beside the conversation, with hover previews and reading-position synchronization for long conversations.
+
+<p align="center">
+  <img src="images/plugin-Application%20Effect-1.png" alt="Key navigator in a conversation page" width="900">
+</p>
+
+<p align="center">
+  <img src="images/plugin-Application%20Effect-2.png" alt="Hover preview from the key navigator" width="900">
+</p>
+
+<p align="center">
+  <img src="images/plugin-Application%20Effect-3.png" alt="Key navigator locating long document content" width="900">
+</p>
 
 ## Quick start
 
@@ -109,6 +129,22 @@ The defaults produce `(20 - 1) × 12 + 2 = 230px`.
 ### About and install command
 
 The About card shows version, release date, author, email, the GitHub repository link, and the official npm package name and link. The Install Command card displays the complete command in its own code surface and provides a one-click copy button.
+
+### Settings screenshots
+
+The following screenshots show the Chinese settings page, the plugin enablement and display controls, and the English locale.
+
+<p align="center">
+  <img src="images/plugin-2.png" alt="Chinese plugin settings and display controls" width="900">
+</p>
+
+<p align="center">
+  <img src="images/plugin-1.png" alt="Chinese About card and install command" width="900">
+</p>
+
+<p align="center">
+  <img src="images/plugin-English.png" alt="English plugin settings page" width="900">
+</p>
 
 ## How it works
 
