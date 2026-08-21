@@ -6,6 +6,8 @@ English documentation · [简体中文（默认）](README.md)
 
 GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
+npm: [@hjj345345/dsh-sm-context-piano](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano)
+
 A Codex-style conversation navigator for the DeepSeek Harness Web GUI.
 
 It adds a compact rail of horizontal keys beside the transcript and condenses a long conversation into semantic nodes that can be previewed and located. Users can scan the conversation structure, hover for summaries, and click or use the keyboard to jump to a target paragraph instead of repeatedly dragging the scrollbar to recover context.
@@ -106,7 +108,7 @@ The defaults produce `(20 - 1) × 12 + 2 = 230px`.
 
 ### About and install command
 
-The About card shows version, release date, author, email, the GitHub repository link, and the current npm status. The Install Command card displays the complete command in its own code surface and provides a one-click copy button.
+The About card shows version, release date, author, email, the GitHub repository link, and the official npm package name and link. The Install Command card displays the complete command in its own code surface and provides a one-click copy button.
 
 ## How it works
 

@@ -85,7 +85,6 @@ window.__ModuleLoader__.load({
 			"settings.releaseDate": "发布日期",
 			"settings.author": "作者",
 			"settings.email": "邮箱",
-			"settings.unpublished": "待公布",
 			"settings.install": "安装命令",
 			"settings.copy": "复制",
 			"settings.copied": "已复制",
@@ -115,7 +114,6 @@ window.__ModuleLoader__.load({
 			"settings.releaseDate": "Release date",
 			"settings.author": "Author",
 			"settings.email": "Email",
-			"settings.unpublished": "To be announced",
 			"settings.install": "Install command",
 			"settings.copy": "Copy",
 			"settings.copied": "Copied",
@@ -145,7 +143,6 @@ window.__ModuleLoader__.load({
 			"settings.releaseDate": "發布日期",
 			"settings.author": "作者",
 			"settings.email": "電子郵件",
-			"settings.unpublished": "待公布",
 			"settings.install": "安裝命令",
 			"settings.copy": "複製",
 			"settings.copied": "已複製",
@@ -174,7 +171,9 @@ window.__ModuleLoader__.load({
 		const AUTHOR = "Jack·Huang";
 		const EMAIL = "jack698698@gmail.com";
 		const GITHUB_URL = "https://github.com/hjj345/dsh-sm-context-piano";
-		const INSTALL_COMMAND = "dsh plugin --profile web add @hjj345345/dsh-sm-context-piano";
+		const NPM_PACKAGE = "@hjj345345/dsh-sm-context-piano";
+		const NPM_URL = "https://www.npmjs.com/package/@hjj345345/dsh-sm-context-piano";
+		const INSTALL_COMMAND = `dsh plugin --profile web add ${NPM_PACKAGE}`;
 		const LANGUAGE_OPTIONS = [
 			{
 				value: "zh",
@@ -411,7 +410,12 @@ window.__ModuleLoader__.load({
 								rel: "noreferrer",
 								children: GITHUB_URL
 							}) })] }),
-							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "npm" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: t("settings.unpublished") })] })
+							/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, react_jsx_runtime.jsx)("dt", { children: "npm" }), /* @__PURE__ */ (0, react_jsx_runtime.jsx)("dd", { children: /* @__PURE__ */ (0, react_jsx_runtime.jsx)("a", {
+								href: NPM_URL,
+								target: "_blank",
+								rel: "noreferrer",
+								children: NPM_PACKAGE
+							}) })] })
 						] })]
 					}),
 					/* @__PURE__ */ (0, react_jsx_runtime.jsxs)("section", {

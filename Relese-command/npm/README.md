@@ -6,6 +6,8 @@
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
+npm：[@hjj345345/dsh-sm-context-piano](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano)
+
 DeepSeek Harness Web GUI 的 Codex 式对话琴键导航插件。
 
 它在聊天正文左侧增加一组紧凑的横线琴键，将长对话压缩为可预览、可定位的语义节点。用户可以沿琴键快速浏览对话结构，悬停查看摘要，点击或使用键盘跳转到目标段落，而不必反复拖动滚动条寻找上下文。
@@ -106,7 +108,7 @@ dsh plugin --profile web add link:C:/path/to/dsh-sm-context-piano
 
 ### 关于插件与安装命令
 
-“关于插件”卡片显示版本、发布日期、作者、邮箱、GitHub 仓库链接以及 npm 状态。“安装命令”使用独立代码卡片展示完整命令，并提供一键复制按钮。
+“关于插件”卡片显示版本、发布日期、作者、邮箱、GitHub 仓库链接以及正式 npm 包名与链接。“安装命令”使用独立代码卡片展示完整命令，并提供一键复制按钮。
 
 ## 工作原理
 

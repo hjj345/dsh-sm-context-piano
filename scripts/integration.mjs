@@ -245,11 +245,16 @@ await check('registers the first-level settings page directly after Agent Preset
   const aboutRows = [...mount.querySelectorAll('.smcp-settings-about dl > div')]
     .map(row => [row.querySelector('dt').textContent, row.querySelector('dd').textContent])
   assert.deepEqual(aboutRows.at(-2), ['GitHub', 'https://github.com/hjj345/dsh-sm-context-piano'])
-  assert.deepEqual(aboutRows.at(-1), ['npm', '待公布'])
+  assert.deepEqual(aboutRows.at(-1), ['npm', '@hjj345345/dsh-sm-context-piano'])
   const githubLink = mount.querySelector('.smcp-settings-about a[href^="https://github.com/"]')
   assert.equal(githubLink.href, 'https://github.com/hjj345/dsh-sm-context-piano')
   assert.equal(githubLink.target, '_blank')
   assert.equal(githubLink.rel, 'noreferrer')
+  const npmLink = mount.querySelector('.smcp-settings-about a[href^="https://www.npmjs.com/package/"]')
+  assert.equal(npmLink.textContent, '@hjj345345/dsh-sm-context-piano')
+  assert.equal(npmLink.href, 'https://www.npmjs.com/package/@hjj345345/dsh-sm-context-piano')
+  assert.equal(npmLink.target, '_blank')
+  assert.equal(npmLink.rel, 'noreferrer')
   await act(async () => {
     languageSelect.value = 'en'
     languageSelect.dispatchEvent(new window.Event('change', { bubbles: true }))

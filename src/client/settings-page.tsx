@@ -28,7 +28,9 @@ const RELEASE_DATE = '2026-08-21'
 const AUTHOR = 'Jack·Huang'
 const EMAIL = 'jack698698@gmail.com'
 const GITHUB_URL = 'https://github.com/hjj345/dsh-sm-context-piano'
-const INSTALL_COMMAND = 'dsh plugin --profile web add @hjj345345/dsh-sm-context-piano'
+const NPM_PACKAGE = '@hjj345345/dsh-sm-context-piano'
+const NPM_URL = 'https://www.npmjs.com/package/@hjj345345/dsh-sm-context-piano'
+const INSTALL_COMMAND = `dsh plugin --profile web add ${NPM_PACKAGE}`
 const LANGUAGE_OPTIONS: readonly { value: PianoLanguage; label: string }[] = [
   { value: 'zh', label: '简体中文' },
   { value: 'en', label: 'English' },
@@ -214,7 +216,7 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
           <div><dt>{t('settings.author')}</dt><dd>{AUTHOR}</dd></div>
           <div><dt>{t('settings.email')}</dt><dd><a href={`mailto:${EMAIL}`}>{EMAIL}</a></dd></div>
           <div><dt>GitHub</dt><dd><a href={GITHUB_URL} target="_blank" rel="noreferrer">{GITHUB_URL}</a></dd></div>
-          <div><dt>npm</dt><dd>{t('settings.unpublished')}</dd></div>
+          <div><dt>npm</dt><dd><a href={NPM_URL} target="_blank" rel="noreferrer">{NPM_PACKAGE}</a></dd></div>
         </dl>
       </section>
 
