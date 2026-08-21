@@ -27,7 +27,7 @@ const VERSION = 'v1.0'
 const RELEASE_DATE = '2026-08-21'
 const AUTHOR = 'Jack·Huang'
 const EMAIL = 'jack698698@gmail.com'
-const INSTALL_COMMAND = 'dsh plugin --profile web add @linxin666/dsh-sm-context-piano'
+const INSTALL_COMMAND = 'dsh plugin --profile web add @hjj345345/dsh-sm-context-piano'
 const LANGUAGE_OPTIONS: readonly { value: PianoLanguage; label: string }[] = [
   { value: 'zh', label: '简体中文' },
   { value: 'en', label: 'English' },

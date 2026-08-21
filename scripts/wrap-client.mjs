@@ -10,7 +10,7 @@
  */
 import { readFile, writeFile } from 'node:fs/promises'
 
-const PACKAGE_ID = '@linxin666/dsh-sm-context-piano'
+const PACKAGE_ID = '@hjj345345/dsh-sm-context-piano'
 const target = new URL('../lib/client.js', import.meta.url)
 
 let code = await readFile(target, 'utf8')

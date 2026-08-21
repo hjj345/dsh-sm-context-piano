@@ -227,7 +227,7 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(mount.textContent, /v1\.0/)
   assert.match(mount.textContent, /2026-08-21/)
   assert.match(mount.textContent, /Jack·Huang/)
-  assert.match(mount.textContent, /dsh plugin --profile web add @linxin666\/dsh-sm-context-piano/)
+  assert.match(mount.textContent, /dsh plugin --profile web add @hjj345345\/dsh-sm-context-piano/)
   assert.match(mount.textContent, /230px/)
   assert.match(mount.textContent, /通用设置/)
   assert.match(mount.textContent, /显示设置/)
@@ -280,7 +280,7 @@ await check('registers the first-level settings page directly after Agent Preset
     commandBox.querySelector('button').click()
     await Promise.resolve()
   })
-  assert.equal(copiedCommand, 'dsh plugin --profile web add @linxin666/dsh-sm-context-piano')
+  assert.equal(copiedCommand, 'dsh plugin --profile web add @hjj345345/dsh-sm-context-piano')
   assert.equal(mount.querySelector('.smcp-settings-command-box button').textContent, '已复制')
   const styles = document.querySelector('#smcp-panel-styles').textContent
   assert.match(styles, /grid-template-columns: minmax\(0, 1fr\) auto/)
