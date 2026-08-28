@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-1.0.0-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -188,6 +188,12 @@ pnpm verify
 本项目采用 [MIT License](LICENSE) 开源。
 
 ## 更新日志
+
+### v1.1.0 · 2026-08-28
+
+- 修复宿主核心包被插件普通依赖遮蔽的问题；
+- 将 `@deepseek-ai/dsh-settings` 和 `@deepseek-ai/schemastery` 改为宿主提供的 peer 依赖；
+- 更新开发构建基线到 DSH 0.1.1-rc.2，同时保留对已发布 DSH 列车的兼容声明。
 
 ### v1.0.0 · 2026-08-21
 

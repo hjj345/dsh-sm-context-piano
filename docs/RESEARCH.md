@@ -44,7 +44,7 @@ DeepSeek Harness 通过 `settings.section` 允许插件注册一级设置页，�
 
 ## 6. 兼容策略
 
-- 依赖锁定到本项目当前使用的 DeepSeek Harness `0.1.0-rc.6` 系列。
+- 开发构建基线使用当前 DeepSeek Harness `0.1.1-rc.2` 系列；宿主核心包通过 peer 依赖由 DSH 提供，运行时不锁定单一 DSH 列车。
 - DOM 锚点不存在时插件保持静默，不影响 Web shell 启动。
 - session binding 延迟出现时最多重试 20 次，每次 300ms。
 - 上游若更改三个 `data-*` 锚点，需要同步更新选择器和集成测试。

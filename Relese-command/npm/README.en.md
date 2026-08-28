@@ -2,7 +2,7 @@
 
 English documentation · [简体中文（默认）](README.md)
 
-[![version](https://img.shields.io/badge/version-1.0.0-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -188,6 +188,12 @@ Yes. Language, enablement, and display parameters are persisted through the DSH 
 This project is open source under the [MIT License](LICENSE).
 
 ## Changelog
+
+### v1.1.0 · 2026-08-28
+
+- Fixed the plugin dependency contract so host core packages can no longer be hoisted over the host-provided versions;
+- Moved `@deepseek-ai/dsh-settings` and `@deepseek-ai/schemastery` to host-provided peer dependencies;
+- Updated the development build baseline to DSH 0.1.1-rc.2 while retaining compatibility declarations for published DSH trains.
 
 ### v1.0.0 · 2026-08-21
 

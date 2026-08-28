@@ -18,6 +18,17 @@ const check = (name, fn) => {
 }
 
 console.log('== host half ==')
+const manifest = requireHere('../package.json')
+check('host core packages are peer-only', () => {
+  for (const name of ['@deepseek-ai/dsh-settings', '@deepseek-ai/schemastery']) {
+    assert.equal(manifest.dependencies?.[name], undefined)
+    assert.ok(manifest.peerDependencies?.[name])
+    assert.ok(manifest.devDependencies?.[name])
+  }
+  assert.match(manifest.peerDependencies['@deepseek-ai/dsh-settings'], /\^0\.0\.1-rc\.1/)
+  assert.match(manifest.peerDependencies['@deepseek-ai/dsh-settings'], /\^0\.1\.1-rc\.1/)
+})
+
 const host = await import('../lib/index.js')
 check('host registers one live settings namespace', () => {
   let registration
