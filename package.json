@@ -72,7 +72,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/hjj345/dsh-sm-context-piano"
+    "url": "git+https://github.com/hjj345/dsh-sm-context-piano.git"
   },
   "homepage": "https://github.com/hjj345/dsh-sm-context-piano",
   "license": "MIT",
