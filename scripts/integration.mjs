@@ -225,7 +225,7 @@ await check('registers the first-level settings page directly after Agent Preset
   })
   assert.match(mount.textContent, /sm-context-piano/)
   assert.match(mount.textContent, /v1\.1/)
-  assert.match(mount.textContent, /2026-08-28/)
+  assert.match(mount.textContent, /2026-08-29/)
   assert.match(mount.textContent, /Jack·Huang/)
   assert.match(mount.textContent, /dsh plugin --profile web add @hjj345345\/dsh-sm-context-piano/)
   assert.match(mount.textContent, /230px/)
