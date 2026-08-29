@@ -23,7 +23,7 @@ import type {
 import { translate } from './locales.ts'
 import type { SmContextPianoKey } from './locales.ts'
 
-const VERSION = 'v1.1.1'
+const VERSION = 'v1.1.2'
 const RELEASE_DATE = '2026-08-29'
 const AUTHOR = 'Jack·Huang'
 const EMAIL = 'jack698698@gmail.com'

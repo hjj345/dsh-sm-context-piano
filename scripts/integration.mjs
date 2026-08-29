@@ -232,7 +232,7 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(mount.textContent, /通用设置/)
   assert.match(mount.textContent, /显示设置/)
   assert.match(mount.textContent, /关于插件/)
-  assert.match(mount.textContent, /v1\.1\.1/)
+  assert.match(mount.textContent, /v1\.1\.2/)
   assert.match(mount.querySelector('.smcp-settings-icon').getAttribute('src'), /^data:image\/png;base64,/)
   const languageSelect = mount.querySelector('.smcp-settings-select')
   assert.equal(languageSelect.value, 'zh')
