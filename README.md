@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-1.1.0-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-1.1.1-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -224,6 +224,11 @@ pnpm verify
 本项目采用 [MIT License](LICENSE) 开源。
 
 ## 更新日志
+
+### v1.1.1 · 2026-08-29
+
+- 统一插件用户可见版本标识为 `v1.1.1`；
+- 优化安装命令卡片的明暗主题背景及暗色文字对比度。
 
 ### v1.1.0 · 2026-08-28
 

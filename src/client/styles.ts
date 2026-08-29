@@ -315,6 +315,8 @@ body[data-ds-dark-theme] .smcp-tooltip {
 }
 body[data-ds-dark-theme] .smcp-settings-switch input:checked + span { background: #f1f1f3; }
 body[data-ds-dark-theme] .smcp-settings-switch input:checked + span::after { background: #202124; }
+body[data-ds-dark-theme] .smcp-settings-command-box { background: rgba(255, 255, 255, .08); }
+body[data-ds-dark-theme] .smcp-settings-command-box code { color: #f1f1f3; }
 @media (max-width: 760px) {
   .smcp-settings-row { align-items: flex-start; flex-direction: column; gap: 8px; padding: 12px 0; }
   .smcp-settings-language { align-items: center; flex-direction: row; }
