@@ -29,7 +29,7 @@ check('host core packages are peer-only', () => {
   assert.match(manifest.peerDependencies['@deepseek-ai/dsh-settings'], /\^0\.1\.1-rc\.1/)
 })
 
-check('settings peer declares alpha.4 compatibility', () => {
+check('settings peer declares alpha.1 compatibility', () => {
   assert.match(
     manifest.peerDependencies['@deepseek-ai/dsh-settings'],
     /\^0\.1\.2-alpha\.1/,

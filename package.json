@@ -1,7 +1,7 @@
 {
   "name": "@hjj345345/dsh-sm-context-piano",
   "description": "Configurable Codex-style conversation navigator for the DeepSeek Harness Web GUI, with compact previews and fast paragraph jumps.",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "publishConfig": {
     "access": "public"
   },
