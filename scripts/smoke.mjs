@@ -29,6 +29,13 @@ check('host core packages are peer-only', () => {
   assert.match(manifest.peerDependencies['@deepseek-ai/dsh-settings'], /\^0\.1\.1-rc\.1/)
 })
 
+check('settings peer declares alpha.4 compatibility', () => {
+  assert.match(
+    manifest.peerDependencies['@deepseek-ai/dsh-settings'],
+    /\^0\.1\.2-alpha\.1/,
+  )
+})
+
 const host = await import('../lib/index.js')
 check('host registers one live settings namespace', () => {
   let registration
@@ -38,6 +45,7 @@ check('host registers one live settings namespace', () => {
       callback({ settings: { register: (...args) => { registration = args } } })
     },
   })
+  assert.equal(typeof registration[0], 'string')
   assert.equal(registration[0], 'sm-context-piano')
   assert.equal(registration[2].applies, 'live')
   assert.doesNotThrow(() => registration[2].validate({ language: 'zh', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }))
