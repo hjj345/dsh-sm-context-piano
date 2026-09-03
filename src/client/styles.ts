@@ -38,6 +38,24 @@ const CSS = `
   background: var(--smcp-key-active, #202124);
   opacity: 1;
 }
+.smcp-bar[data-role="user"] {
+  background: var(--smcp-key-user, #4c7ef3);
+  opacity: .95;
+}
+.smcp-bar[data-role="user"].smcp-bar-current,
+.smcp-bar[data-role="user"].smcp-bar-hover {
+  background: var(--smcp-key-user-active, #205eee);
+  opacity: 1;
+}
+.smcp-bar[data-role="final"] {
+  background: var(--smcp-key-final, #21a366);
+  opacity: .95;
+}
+.smcp-bar[data-role="final"].smcp-bar-current,
+.smcp-bar[data-role="final"].smcp-bar-hover {
+  background: var(--smcp-key-final-active, #0e7a4a);
+  opacity: 1;
+}
 .smcp-strip-hidden { display: none; }
 .smcp-tooltip {
   position: absolute;
@@ -307,6 +325,14 @@ const CSS = `
 body[data-ds-dark-theme] .smcp-bar {
   --smcp-key: rgba(255, 255, 255, .32);
   --smcp-key-active: rgba(255, 255, 255, .94);
+}
+body[data-ds-dark-theme] .smcp-bar[data-role="user"] {
+  --smcp-key-user: #7aa2ff;
+  --smcp-key-user-active: #a3c2ff;
+}
+body[data-ds-dark-theme] .smcp-bar[data-role="final"] {
+  --smcp-key-final: #4dd0a1;
+  --smcp-key-final-active: #86e8c0;
 }
 body[data-ds-dark-theme] .smcp-tooltip {
   background: var(--dsw-alias-bg-layer-2, rgba(35, 35, 39, .98));

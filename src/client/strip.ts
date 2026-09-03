@@ -333,6 +333,9 @@ function mountStrip(
         marker.descriptor = descriptor
       }
       marker.el.setAttribute('aria-label', descriptor.title)
+      marker.el.dataset.role = descriptor.role === 'user'
+        ? 'user'
+        : descriptor.final ? 'final' : 'assistant'
       strip.appendChild(marker.el)
       next.push(marker)
     }

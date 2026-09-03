@@ -9,6 +9,8 @@ export interface KeyDescriptor {
   /** ChatView row used as the scroll target. */
   anchorKey: string
   role: 'user' | 'assistant'
+  /** Assistant-only: whether this run is the last visible output of its turn. */
+  final: boolean
   title: string
   preview: string
   turn: number | null
@@ -89,6 +91,7 @@ function descriptor(
     key: `${node.key}${suffix}`,
     anchorKey: node.key,
     role,
+    final: false,
     title: titleOf(preview),
     preview,
     turn: typeof data.turn === 'number' ? data.turn : null,
@@ -141,6 +144,16 @@ export function buildNavigationNodes(nodes: readonly ChatConversationViewNode[])
       if (index < output.runs.length - 1) continuableAssistant = null
     }
     if (!output.endsWithText) continuableAssistant = null
+  }
+
+  // Mark the last visible assistant run of each turn: it is the run that is
+  // either last overall or immediately followed by a user key. Earlier runs
+  // are intermediate output between tool calls.
+  for (let index = 0; index < result.length; index += 1) {
+    const item = result[index]
+    if (item.role !== 'assistant') continue
+    const follow = result[index + 1]
+    item.final = follow === undefined || follow.role === 'user'
   }
 
   return result
