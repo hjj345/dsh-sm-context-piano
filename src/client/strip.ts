@@ -18,6 +18,7 @@ const SCROLL_SELECTOR = '[data-conversation-scroll]'
 const ROW_SELECTOR = '[data-chat-anchor-key]'
 const RAIL_WIDTH = 58
 const RAIL_TO_FLOW = 108
+const RAIL_EDGE_LEFT = 24
 const TOOLTIP_GAP = 6
 const MIN_ROOT_WIDTH = 520
 const MIN_GUTTER = 82
@@ -49,6 +50,12 @@ export function visibleWindow(total: number, center: number, size = DEFAULT_SETT
   const count = Math.min(total, size)
   const start = Math.max(0, Math.min(total - count, center - Math.floor(count / 2)))
   return { start, end: start + count }
+}
+
+/** Rail left offset in flow-parent coordinates: dock to the pane edge when the
+ * left margin is roomy, fall back to content-anchored when it is tight. */
+export function railLeftOf(flowLeft: number): number {
+  return Math.max(16, Math.min(flowLeft - RAIL_TO_FLOW, RAIL_EDGE_LEFT))
 }
 
 export function stackPositions(
@@ -261,7 +268,7 @@ function mountStrip(
     const flowLeft = Number.isFinite(measuredFlowLeft) && flowRect.width > 0
       ? measuredFlowLeft
       : Math.max(96, (rootWidth - Math.min(760, rootWidth)) / 2)
-    railLeft = Math.max(16, flowLeft - RAIL_TO_FLOW)
+    railLeft = railLeftOf(flowLeft)
     const config = settings.getSnapshot()
     const height = railHeight(config)
     railTop = (root.clientHeight - height) / 2
