@@ -301,6 +301,8 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(styles, /\.smcp-settings-command-box button[\s\S]*background: #161719[\s\S]*color: #fff/)
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box[\s\S]*background: rgba\(255, 255, 255, \.08\)/)
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box code[\s\S]*color: #f1f1f3/)
+  assert.match(styles, /\.smcp-overlay[\s\S]*z-index: 10000/)
+  assert.match(styles, /body:has\(\[role="dialog"\]\) \.smcp-overlay[\s\S]*display: none/)
   assert.match(styles, /@media \(max-width: 520px\)/)
   assert.match(styles, /@media \(max-width: 360px\)/)
   await act(async () => { rootView.unmount() })
@@ -362,9 +364,32 @@ await check('the full rail continuously drives the hover wave and preview', asyn
   assert.doesNotMatch(tooltip.textContent, /token|工具|read_file|assistant/i)
 })
 
+await check('hover uses actual bar geometry and ignores distant empty rail space', async () => {
+  const strip = document.querySelector('.smcp-strip')
+  const railHeight = Number.parseFloat(strip.style.height)
+  const bars = [...document.querySelectorAll('.smcp-bar')]
+  const secondY = Number.parseFloat(bars[1].style.top) + Number.parseFloat(bars[1].style.height) / 2
+  Object.defineProperty(bars[1], 'getBoundingClientRect', {
+    value: () => ({ left: 192, top: 250 + secondY + 18, right: 250, bottom: 252 + secondY + 18, width: 58, height: 2 }),
+    configurable: true,
+  })
+  strip.dispatchEvent(new window.MouseEvent('pointermove', { clientY: 250 + secondY + 18, bubbles: true }))
+  await waitFrame()
+  assert.ok(bars[1].classList.contains('smcp-bar-hover'))
+
+  strip.dispatchEvent(new window.MouseEvent('pointermove', { clientY: 250 + railHeight - 1, bubbles: true }))
+  await waitFrame()
+  assert.equal(document.querySelector('.smcp-tooltip').classList.contains('smcp-tooltip-visible'), false)
+  assert.ok(bars.every(bar => !bar.classList.contains('smcp-bar-hover')))
+  delete bars[1].getBoundingClientRect
+})
+
 await check('clicking the rail jumps to the currently previewed node', () => {
   const strip = document.querySelector('.smcp-strip')
-  strip.dispatchEvent(new window.MouseEvent('click', { clientY: 342, bubbles: true }))
+  const bar = document.querySelectorAll('.smcp-bar')[1]
+  const localY = Number.parseFloat(bar.style.top) + Number.parseFloat(bar.style.height) / 2
+  strip.dispatchEvent(new window.MouseEvent('pointermove', { clientY: 250 + localY, bubbles: true }))
+  strip.dispatchEvent(new window.MouseEvent('click', { clientY: 250 + localY, bubbles: true }))
   assert.equal(scrollport.scrollTop, contentTops[1] - 16)
 })
 
@@ -475,6 +500,21 @@ await check('a single rendered node stays centered on the rail', async () => {
   const bar = document.querySelector('.smcp-bar')
   const center = Number.parseFloat(bar.style.top) + Number.parseFloat(bar.style.height) / 2
   assert.ok(Math.abs(center - Number.parseFloat(strip.style.height) / 2) < 0.2)
+})
+
+await check('restores the owned rail after an external DOM removal', async () => {
+  document.querySelector('.smcp-overlay').remove()
+  await waitFrame()
+  await waitFrame()
+  assert.equal(document.querySelectorAll('.smcp-overlay').length, 1)
+  assert.equal(document.querySelectorAll('.smcp-strip').length, 1)
+})
+
+await check('falls back to the conversation scrollport when the legacy flow marker is absent', async () => {
+  flow.removeAttribute('data-chat-flow')
+  await waitFrame()
+  await waitFrame()
+  assert.ok(document.querySelector('.smcp-strip'))
 })
 
 await check('session disappearance clears markers without stale content', async () => {

@@ -16,11 +16,19 @@ import type { PianoSettingsSource } from '../core/config.ts'
 const FLOW_SELECTOR = '[data-chat-flow]'
 const SCROLL_SELECTOR = '[data-conversation-scroll]'
 const ROW_SELECTOR = '[data-chat-anchor-key]'
-const RAIL_WIDTH = 58
+const OWNER_SELECTOR = '[data-smcp-owner="hjj345345"]'
+
+function findConversationFlow(): HTMLElement | null {
+  const direct = document.querySelector<HTMLElement>(FLOW_SELECTOR)
+  if (direct !== null) return direct
+  for (const scrollport of document.querySelectorAll<HTMLElement>(SCROLL_SELECTOR)) {
+    if (scrollport.querySelector(ROW_SELECTOR) !== null) return scrollport
+  }
+  return null
+}
+
 const RAIL_TO_FLOW = 108
 const TOOLTIP_GAP = 6
-const MIN_ROOT_WIDTH = 520
-const MIN_GUTTER = 82
 const BASE_WIDTH = 10
 const CURRENT_WIDTH = 24
 const HOVER_WIDTH = 48
@@ -41,7 +49,7 @@ interface DebugState {
   total: number
   windowStart: number
   sessionId: string | undefined
-  hiddenReason: 'empty' | 'narrow' | 'overlap' | null
+  hiddenReason: 'empty' | null
 }
 
 export function visibleWindow(total: number, center: number, size = DEFAULT_SETTINGS.maxVisible): { start: number; end: number } {
@@ -84,8 +92,8 @@ export function attachKeyStrip(
       mountedFlow = null
       return
     }
-    const nextFlow = document.querySelector<HTMLElement>(FLOW_SELECTOR)
-    if (nextFlow === mountedFlow && nextFlow?.isConnected) return
+    const nextFlow = findConversationFlow()
+    if (nextFlow === mountedFlow && nextFlow?.isConnected && document.querySelector(OWNER_SELECTOR) !== null) return
     disposeMount?.()
     disposeMount = undefined
     mountedFlow = nextFlow
@@ -99,14 +107,24 @@ export function attachKeyStrip(
   }
 
   const scheduleReconcile = (): void => {
-    if (disposed || reconcileFrame !== 0 || mountedFlow?.isConnected || !settings.getSnapshot().enabled) return
+    if (
+      disposed
+      || reconcileFrame !== 0
+      || !settings.getSnapshot().enabled
+      || (mountedFlow?.isConnected && document.querySelector(OWNER_SELECTOR) !== null)
+    ) return
     reconcileFrame = window.requestAnimationFrame(reconcile)
   }
 
   let observer: MutationObserver
   try {
     observer = new MutationObserver(scheduleReconcile)
-    observer.observe(document.body, { childList: true, subtree: true })
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['data-chat-flow', 'data-chat-anchor-key'],
+      childList: true,
+      subtree: true,
+    })
   } catch (error) {
     console.warn('[dsh-sm-context-piano] navigator watcher unavailable:', error)
     return () => {}
@@ -141,8 +159,12 @@ function mountStrip(
   const root = scrollport?.parentElement
   if (scrollport === null || scrollport === undefined || root === null || root === undefined) return () => {}
 
+  const overlay = document.createElement('div')
+  overlay.className = 'smcp-overlay'
+  overlay.dataset.smcpOwner = 'hjj345345'
   const strip = document.createElement('div')
   strip.className = 'smcp-strip'
+  strip.dataset.smcpOwner = 'hjj345345'
   strip.tabIndex = 0
   strip.setAttribute('role', 'navigation')
   strip.setAttribute('aria-label', t('nav.aria'))
@@ -150,10 +172,8 @@ function mountStrip(
   tooltip.className = 'smcp-tooltip'
   tooltip.setAttribute('aria-hidden', 'true')
 
-  const originalRootPosition = root.style.position
-  const forcedRootPosition = window.getComputedStyle(root).position === 'static'
-  if (forcedRootPosition) root.style.position = 'relative'
-  root.append(strip, tooltip)
+  overlay.append(strip, tooltip)
+  document.body.append(overlay)
 
   const debug: DebugState = {
     mounted: true,
@@ -178,7 +198,6 @@ function mountStrip(
   let latestPointerY: number | null = null
   let hoverKey: string | null = null
   let currentKey: string | null = null
-  let railTop = 0
   let railLeft = 0
 
   const markerByKey = (key: string | null): Marker | null => key === null
@@ -187,25 +206,35 @@ function mountStrip(
 
   const baseWidth = (marker: Marker): number => marker.descriptor.key === currentKey ? CURRENT_WIDTH : BASE_WIDTH
 
+  const markerLocalY = (marker: Marker, stripRect = strip.getBoundingClientRect()): number => {
+    const rect = marker.el.getBoundingClientRect()
+    return rect.height > 0 ? rect.top - stripRect.top + rect.height / 2 : marker.y
+  }
+
   const paintWidths = (pointerY: number | null): void => {
     const visible = markers.filter(marker => marker.row !== null && !marker.el.hidden)
     const sigma = settings.getSnapshot().keyGap * 1.35
     const divisor = 2 * sigma * sigma
+    const stripRect = strip.getBoundingClientRect()
     for (const marker of visible) {
       const base = baseWidth(marker)
-      const falloff = pointerY === null ? 0 : Math.exp(-((pointerY - marker.y) ** 2) / divisor)
+      const falloff = pointerY === null ? 0 : Math.exp(-((pointerY - markerLocalY(marker, stripRect)) ** 2) / divisor)
       const max = marker.descriptor.key === currentKey ? HOVER_WIDTH + 4 : HOVER_WIDTH
       marker.el.style.width = `${(base + (max - base) * falloff).toFixed(1)}px`
     }
   }
 
   const positionTooltip = (marker: Marker): void => {
-    const rootWidth = root.clientWidth
-    const tooltipWidth = tooltip.offsetWidth || Math.min(560, Math.max(280, rootWidth - 32))
+    const stripRect = strip.getBoundingClientRect()
+    const markerRect = marker.el.getBoundingClientRect()
+    const markerY = markerRect.height > 0 ? markerRect.top + markerRect.height / 2 : stripRect.top + marker.y
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const tooltipWidth = tooltip.offsetWidth || Math.min(560, Math.max(280, viewportWidth - 32))
     const tooltipHeight = tooltip.offsetHeight || 100
-    const preferredLeft = railLeft + RAIL_WIDTH + TOOLTIP_GAP
-    const left = preferredLeft + tooltipWidth <= rootWidth - 8 ? preferredLeft : Math.max(8, railLeft - tooltipWidth - 10)
-    const top = Math.max(8, Math.min(railTop + marker.y - tooltipHeight / 2, root.clientHeight - tooltipHeight - 8))
+    const preferredLeft = stripRect.right + TOOLTIP_GAP
+    const left = preferredLeft + tooltipWidth <= viewportWidth - 8 ? preferredLeft : Math.max(8, stripRect.left - tooltipWidth - 10)
+    const top = Math.max(8, Math.min(markerY - tooltipHeight / 2, viewportHeight - tooltipHeight - 8))
     tooltip.style.left = `${left.toFixed(1)}px`
     tooltip.style.top = `${top.toFixed(1)}px`
   }
@@ -256,6 +285,7 @@ function mountStrip(
 
     const rootRect = root.getBoundingClientRect()
     const flowRect = flow.getBoundingClientRect()
+    const rootHeight = root.clientHeight || rootRect.height
     const rootWidth = root.clientWidth || rootRect.width
     const measuredFlowLeft = flowRect.left - rootRect.left
     const flowLeft = Number.isFinite(measuredFlowLeft) && flowRect.width > 0
@@ -264,8 +294,8 @@ function mountStrip(
     railLeft = Math.max(16, flowLeft - RAIL_TO_FLOW)
     const config = settings.getSnapshot()
     const height = railHeight(config)
-    railTop = (root.clientHeight - height) / 2
-    strip.style.left = `${railLeft.toFixed(1)}px`
+    strip.style.left = `${(rootRect.left + railLeft).toFixed(1)}px`
+    strip.style.top = `${(rootRect.top + rootHeight / 2).toFixed(1)}px`
     strip.style.height = `${height}px`
 
     const rows = new Map<string, HTMLElement>()
@@ -296,8 +326,7 @@ function mountStrip(
       marker.el.style.height = `${config.keyHeight}px`
     }
 
-    const overlap = flowLeft < MIN_GUTTER || railLeft + RAIL_WIDTH + 12 > flowLeft
-    debug.hiddenReason = visible.length === 0 ? 'empty' : rootWidth < MIN_ROOT_WIDTH ? 'narrow' : overlap ? 'overlap' : null
+    debug.hiddenReason = visible.length === 0 ? 'empty' : null
     strip.classList.toggle('smcp-strip-hidden', debug.hiddenReason !== null)
     if (debug.hiddenReason !== null || markerByKey(hoverKey)?.el.hidden) {
       latestPointerY = null
@@ -388,11 +417,17 @@ function mountStrip(
   }
 
   const nearestMarker = (localY: number): Marker | null => {
+    const visible = markers.filter(marker => marker.row !== null && !marker.el.hidden)
+    if (visible.length === 0) return null
+    const stripRect = strip.getBoundingClientRect()
+    const centers = visible.map(marker => markerLocalY(marker, stripRect))
+    const halfGap = settings.getSnapshot().keyGap / 2
+    if (localY < centers[0] - halfGap || localY > centers[centers.length - 1] + halfGap) return null
     let nearest: Marker | null = null
     let distance = Number.POSITIVE_INFINITY
-    for (const marker of markers) {
-      if (marker.row === null || marker.el.hidden) continue
-      const candidate = Math.abs(localY - marker.y)
+    for (let index = 0; index < visible.length; index += 1) {
+      const marker = visible[index]
+      const candidate = Math.abs(localY - centers[index])
       if (candidate < distance) {
         nearest = marker
         distance = candidate
@@ -452,7 +487,7 @@ function mountStrip(
       : event.key === 'End' ? visible.length - 1
         : Math.max(0, Math.min(visible.length - 1, currentIndex + (event.key === 'ArrowDown' ? 1 : -1)))
     const next = visible[nextIndex]
-    latestPointerY = next.y
+    latestPointerY = markerLocalY(next)
     setHover(next)
     paintWidths(next.y)
   }
@@ -502,9 +537,7 @@ function mountStrip(
     if (layoutFrame !== 0) window.cancelAnimationFrame(layoutFrame)
     if (pointerFrame !== 0) window.cancelAnimationFrame(pointerFrame)
     if (scrollFrame !== 0) window.cancelAnimationFrame(scrollFrame)
-    strip.remove()
-    tooltip.remove()
-    if (forcedRootPosition && root.style.position === 'relative') root.style.position = originalRootPosition
+    overlay.remove()
     if (debugTarget.__smcpDebug === debug) debugTarget.__smcpDebug = undefined
   }
 }

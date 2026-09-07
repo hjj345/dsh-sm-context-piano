@@ -1,12 +1,21 @@
 /** Codex-like conversation navigator visuals. */
 
 const CSS = `
+.smcp-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  isolation: isolate;
+  pointer-events: none;
+}
+body:has([role="dialog"]) .smcp-overlay {
+  display: none;
+}
 .smcp-strip {
-  position: absolute;
-  top: 50%;
+  position: fixed;
   width: 58px;
   transform: translateY(-50%);
-  z-index: 20;
+  z-index: 1;
   pointer-events: auto;
   touch-action: none;
   outline: none;
