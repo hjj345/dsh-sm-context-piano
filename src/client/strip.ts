@@ -1,6 +1,8 @@
 /** Fixed-window Codex-style navigator for user and visible assistant output. */
 
-import type { ChatConversationViewNode, ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
+import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
+import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
+import type { ChatNavigationNode, ChatSnapshot } from './chat-source.ts'
 import type { Translate } from '@deepseek-ai/dsh-client-ui-slots'
 import { buildNavigationNodes } from './keys.ts'
 import type { KeyDescriptor } from './keys.ts'
@@ -17,6 +19,7 @@ const FLOW_SELECTOR = '[data-chat-flow]'
 const SCROLL_SELECTOR = '[data-conversation-scroll]'
 const ROW_SELECTOR = '[data-chat-anchor-key]'
 const OWNER_SELECTOR = '[data-smcp-owner="hjj345345"]'
+const OFFICIAL_NAV_SELECTOR = 'nav[aria-label]'
 
 function findConversationFlow(): HTMLElement | null {
   const direct = document.querySelector<HTMLElement>(FLOW_SELECTOR)
@@ -25,6 +28,31 @@ function findConversationFlow(): HTMLElement | null {
     if (scrollport.querySelector(ROW_SELECTOR) !== null) return scrollport
   }
   return null
+}
+
+function isOfficialTurnNavigator(nav: HTMLElement): boolean {
+  const label = nav.getAttribute('aria-label')?.trim().toLowerCase()
+  if (label === '轮次导航' || label === '輪次導覽' || label === 'turn navigation') return true
+  return nav.querySelector('[aria-label*="跳转到第"], [aria-label*="jump to round"]') !== null
+}
+
+function suppressOfficialTurnNavigator(): void {
+  for (const nav of document.querySelectorAll<HTMLElement>(OFFICIAL_NAV_SELECTOR)) {
+    if (!isOfficialTurnNavigator(nav)) continue
+    const slot = nav.parentElement
+    if (slot === null || slot.dataset.smcpOfficialSuppressed === 'true') continue
+    slot.dataset.smcpOfficialSuppressed = 'true'
+    slot.dataset.smcpPreviousDisplay = slot.style.display
+    slot.style.display = 'none'
+  }
+}
+
+function restoreOfficialTurnNavigator(): void {
+  for (const slot of document.querySelectorAll<HTMLElement>('[data-smcp-official-suppressed="true"]')) {
+    slot.style.display = slot.dataset.smcpPreviousDisplay ?? ''
+    delete slot.dataset.smcpOfficialSuppressed
+    delete slot.dataset.smcpPreviousDisplay
+  }
 }
 
 const RAIL_TO_FLOW = 108
@@ -199,6 +227,8 @@ function mountStrip(
   let hoverKey: string | null = null
   let currentKey: string | null = null
   let railLeft = 0
+  let chatSource: { getSnapshot: () => ChatSnapshot | undefined; subscribe: (listener: () => void) => () => void } | undefined
+  let officialNavObserver: MutationObserver | undefined
 
   const markerByKey = (key: string | null): Marker | null => key === null
     ? null
@@ -327,6 +357,8 @@ function mountStrip(
     }
 
     debug.hiddenReason = visible.length === 0 ? 'empty' : null
+    if (debug.hiddenReason === null) suppressOfficialTurnNavigator()
+    else restoreOfficialTurnNavigator()
     strip.classList.toggle('smcp-strip-hidden', debug.hiddenReason !== null)
     if (debug.hiddenReason !== null || markerByKey(hoverKey)?.el.hidden) {
       latestPointerY = null
@@ -375,14 +407,14 @@ function mountStrip(
 
   const rebuild = (): void => {
     if (!alive || sessionId === undefined) return
-    const session = ctx.sessions.binding(sessionId)?.session
-    if (session === undefined) return
-    const snapshot = session.getSnapshot()
-    const nodes: ChatConversationViewNode[] = []
-    for (const key of snapshot.chat.order) {
-      const node = snapshot.chat.nodes.get(key)
-      if (node !== undefined) nodes.push(node)
+    const snapshot = chatSource?.getSnapshot()
+    if (snapshot === undefined) {
+      reconcileMarkers([])
+      return
     }
+    const nodes = snapshot.order
+      .map(key => snapshot.nodes.get(key))
+      .filter((node): node is ChatNavigationNode => node !== undefined)
     reconcileMarkers(buildNavigationNodes(nodes))
   }
 
@@ -396,23 +428,27 @@ function mountStrip(
       retryTimer = undefined
       retryCount = 0
       sessionId = nextId
+      chatSource = undefined
       debug.sessionId = nextId === undefined ? undefined : String(nextId)
       reconcileMarkers([])
     }
     if (sessionId === undefined || sessionUnsub !== undefined) return
-    const session = ctx.sessions.binding(sessionId)?.session
-    if (session === undefined) {
+    try {
+      chatSource = ctx.uiConversation.binding(sessionId).target('chat')
+    } catch (error) {
       if (retryCount < BIND_RETRY_MAX) {
         retryCount += 1
         retryTimer = window.setTimeout(bindSession, BIND_RETRY_MS)
       } else {
-        console.warn('[dsh-sm-context-piano] session binding unavailable:', String(sessionId))
+        console.warn('[dsh-sm-context-piano] chat target unavailable:', String(error))
       }
       return
     }
     retryCount = 0
     retryTimer = undefined
-    sessionUnsub = session.subscribe(rebuild)
+    const source = chatSource
+    if (source === undefined) return
+    sessionUnsub = source.subscribe(rebuild)
     rebuild()
   }
 
@@ -506,6 +542,15 @@ function mountStrip(
   resizeObserver?.observe(root)
   resizeObserver?.observe(scrollport)
   resizeObserver?.observe(flow)
+  officialNavObserver = new MutationObserver(() => {
+    if (debug.hiddenReason === null) suppressOfficialTurnNavigator()
+  })
+  officialNavObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['aria-label'],
+    childList: true,
+    subtree: true,
+  })
   strip.addEventListener('pointermove', onPointerMove)
   strip.addEventListener('pointerleave', clearInteraction)
   strip.addEventListener('click', onClick)
@@ -524,6 +569,8 @@ function mountStrip(
     listUnsub()
     settingsUnsub()
     sessionUnsub?.()
+    officialNavObserver?.disconnect()
+    restoreOfficialTurnNavigator()
     flowObserver.disconnect()
     resizeObserver?.disconnect()
     strip.removeEventListener('pointermove', onPointerMove)
@@ -538,6 +585,7 @@ function mountStrip(
     if (pointerFrame !== 0) window.cancelAnimationFrame(pointerFrame)
     if (scrollFrame !== 0) window.cancelAnimationFrame(scrollFrame)
     overlay.remove()
+    chatSource = undefined
     if (debugTarget.__smcpDebug === debug) debugTarget.__smcpDebug = undefined
   }
 }

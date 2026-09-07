@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.1-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-v1.2.2-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -225,9 +225,16 @@ pnpm verify
 
 ## 更新日志
 
+### v1.2.2 · 2026-09-07
+
+- 当前版本开始强兼容 DSH 0.1.2-rc.1 及更高版本；
+- 改用 DSH 0.1.2-rc.1 的 `uiConversation` Chat target 读取对话节点，避免依赖旧版 Session snapshot；
+- 插件成功挂载后精准屏蔽 DSH 0.1.2-rc.1 内置“轮次导航”，并在插件关闭或异常时恢复官方导航；
+- 增加对 DSH 0.1.2-rc.1 官方 ChatView、TurnNavigator 和历史轮次投影的集成测试。
+
 ### v1.2.1 · 2026-09-07
 
-- 修复 DSH `rc.1` 环境下琴键导航轨道无法正确显示或绑定的问题；
+- 修复 DSH 0.1.2-rc.1 环境下琴键导航轨道无法正确显示或绑定的问题；
 - 改用实际琴键几何位置计算悬停定位，避免轨道空白区域触发错误预览；
 - 兼容缺少旧版 flow 标记的会话滚动容器，并在导航轨道被外部移除后自动恢复；
 - 调整导航遮罩层级，并在 DSH 对话框打开时隐藏，避免遮挡界面；

@@ -29,6 +29,10 @@ check('host core packages are peer-only', () => {
   assert.match(manifest.peerDependencies['@deepseek-ai/dsh-settings'], /\^0\.1\.1-rc\.1/)
 })
 
+check('manifest requests the DSH 0.1.2-rc.1 Chat target', () => {
+  assert.ok(manifest.dsh.client.inject.includes('@deepseek-ai/dsh-client-ui-chat'))
+})
+
 check('settings peer declares alpha.1 compatibility', () => {
   assert.match(
     manifest.peerDependencies['@deepseek-ai/dsh-settings'],
@@ -78,7 +82,7 @@ const exports = globalThis.__handoff.factory(spec => {
 })
 
 check('client exposes the DSH plugin contract', () => {
-  assert.deepEqual(exports.inject, ['sessions', 'locale', 'slots', 'settingsScope', 'connection', 'remote'])
+  assert.deepEqual(exports.inject, ['sessions', 'uiConversation', 'locale', 'slots', 'settingsScope', 'connection', 'remote'])
   assert.equal(typeof exports.apply, 'function')
 })
 
@@ -104,6 +108,9 @@ check('client apply registers locale, settings section, and three disposable eff
     sessions: {
       list: { getSnapshot: () => ({ current: undefined }), subscribe: () => () => {} },
       binding: () => undefined,
+    },
+    uiConversation: {
+      binding: () => ({ target: () => ({ getSnapshot: () => undefined, subscribe: () => () => {} }) }),
     },
     settingsScope: {
       bind: spec => {

@@ -8,9 +8,6 @@ const CSS = `
   isolation: isolate;
   pointer-events: none;
 }
-body:has([role="dialog"]) .smcp-overlay {
-  display: none;
-}
 .smcp-strip {
   position: fixed;
   width: 58px;

@@ -2,7 +2,7 @@
 
 English documentation · [简体中文（默认）](README.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.1-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-v1.2.2-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -225,9 +225,16 @@ This project is open source under the [MIT License](LICENSE).
 
 ## Changelog
 
+### v1.2.2 · 2026-09-07
+
+- Starting with this version, strong compatibility is provided for DSH 0.1.2-rc.1 and later versions;
+- Read conversation nodes from the DSH 0.1.2-rc.1 `uiConversation` Chat target instead of the legacy Session snapshot;
+- Hide DSH 0.1.2-rc.1's built-in Turn Navigator only after this plugin mounts successfully, and restore it when the plugin is disabled or unavailable;
+- Added integration coverage for the DSH 0.1.2-rc.1 ChatView, TurnNavigator, and historical turn projection.
+
 ### v1.2.1 · 2026-09-07
 
-- Fixed piano-navigation rail display and binding in DSH `rc.1` environments;
+- Fixed piano-navigation rail display and binding in DSH 0.1.2-rc.1 environments;
 - Switched hover targeting to actual bar geometry so empty rail space no longer triggers an incorrect preview;
 - Added fallback binding to the conversation scrollport when the legacy flow marker is absent, with automatic rail recovery after external DOM removal;
 - Adjusted the navigation overlay stacking and hid it while a DSH dialog is open to prevent UI obstruction;

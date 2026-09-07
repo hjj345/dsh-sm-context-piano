@@ -12,6 +12,7 @@
 
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
+import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
 import type {} from '@deepseek-ai/dsh-client-ui-settings/client'
 import {
   SETTINGS_NAMESPACE,
@@ -27,7 +28,7 @@ import { installStyles } from './styles.ts'
 import { attachKeyStrip } from './strip.ts'
 
 /** Required services for the conversation surface and official settings scope. */
-export const inject = ['sessions', 'locale', 'slots', 'settingsScope', 'connection', 'remote']
+export const inject = ['sessions', 'uiConversation', 'locale', 'slots', 'settingsScope', 'connection', 'remote']
 
 /** Apply the browser half. */
 export function apply(ctx: ClientContext): void {

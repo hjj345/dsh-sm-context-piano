@@ -85,6 +85,15 @@ root.appendChild(scrollport)
 scrollport.appendChild(flow)
 document.body.appendChild(root)
 
+const officialSlot = document.createElement('div')
+const officialTurnNavigator = document.createElement('nav')
+officialTurnNavigator.setAttribute('aria-label', '轮次导航')
+const officialTurn = document.createElement('button')
+officialTurn.setAttribute('aria-label', '跳转到第 1 轮')
+officialTurnNavigator.appendChild(officialTurn)
+officialSlot.appendChild(officialTurnNavigator)
+document.body.appendChild(officialSlot)
+
 const nodeMap = new Map([
   ['user:1', {
     key: 'user:1', kind: 'user', anchorSeq: 1,
@@ -121,6 +130,10 @@ const session = {
   getSnapshot: () => snapshot,
   subscribe: fn => { snapshotSubscriber = fn; return () => { snapshotSubscriber = () => {} } },
 }
+const chatSource = {
+  getSnapshot: () => snapshot.chat,
+  subscribe: fn => { snapshotSubscriber = fn; return () => { snapshotSubscriber = () => {} } },
+}
 let currentSession = 's1'
 let listSubscriber = () => {}
 let settingsSnapshot = {
@@ -155,6 +168,9 @@ const ctx = {
       subscribe: fn => { listSubscriber = fn; return () => { listSubscriber = () => {} } },
     },
     binding: id => id === 's1' ? { session } : undefined,
+  },
+  uiConversation: {
+    binding: id => id === 's1' ? { target: name => { assert.equal(name, 'chat'); return chatSource } } : undefined,
   },
   settingsScope: {
     bind: spec => {
@@ -196,6 +212,7 @@ await check('mounts only user messages and visible assistant output runs', async
   assert.equal(strip.getAttribute('role'), 'navigation')
   assert.equal(Number.parseFloat(strip.style.height), 230)
   assert.equal(globalThis.__smcpDebug.hiddenReason, null)
+  assert.equal(officialSlot.style.display, 'none')
 })
 
 await check('registers the first-level settings page directly after Agent Presets', async () => {
@@ -224,7 +241,7 @@ await check('registers the first-level settings page directly after Agent Preset
     await waitFrame()
   })
   assert.match(mount.textContent, /sm-context-piano/)
-  assert.match(mount.textContent, /v1\.2\.1/)
+  assert.match(mount.textContent, /v1\.2\.2/)
   assert.match(mount.textContent, /2026-09-07/)
   assert.match(mount.textContent, /Jack·Huang/)
   assert.match(mount.textContent, /dsh plugin --profile web add @hjj345345\/dsh-sm-context-piano/)
@@ -232,7 +249,7 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(mount.textContent, /通用设置/)
   assert.match(mount.textContent, /显示设置/)
   assert.match(mount.textContent, /关于插件/)
-  assert.match(mount.textContent, /v1\.2\.1/)
+  assert.match(mount.textContent, /v1\.2\.2/)
   assert.match(mount.querySelector('.smcp-settings-icon').getAttribute('src'), /^data:image\/png;base64,/)
   const languageSelect = mount.querySelector('.smcp-settings-select')
   assert.equal(languageSelect.value, 'zh')
@@ -302,7 +319,7 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box[\s\S]*background: rgba\(255, 255, 255, \.08\)/)
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box code[\s\S]*color: #f1f1f3/)
   assert.match(styles, /\.smcp-overlay[\s\S]*z-index: 10000/)
-  assert.match(styles, /body:has\(\[role="dialog"\]\) \.smcp-overlay[\s\S]*display: none/)
+  assert.doesNotMatch(styles, /body:has\(\[role="dialog"\]\) \.smcp-overlay/)
   assert.match(styles, /@media \(max-width: 520px\)/)
   assert.match(styles, /@media \(max-width: 360px\)/)
   await act(async () => { rootView.unmount() })
@@ -321,6 +338,7 @@ await check('live settings resize, limit, disable, and restore the rail', async 
   await settingsScope.set('enabled', false)
   await waitFrame()
   assert.equal(document.querySelector('.smcp-strip'), null)
+  assert.equal(officialSlot.style.display, '')
   await settingsScope.set('enabled', true)
   await settingsScope.set('keyHeight', 2)
   await settingsScope.set('keyGap', 12)
@@ -330,6 +348,7 @@ await check('live settings resize, limit, disable, and restore the rail', async 
   strip = document.querySelector('.smcp-strip')
   assert.ok(strip)
   assert.equal(Number.parseFloat(strip.style.height), 230)
+  assert.equal(officialSlot.style.display, 'none')
 })
 
 await check('keeps a compact fixed-pitch stack centered in the rail', () => {
@@ -523,6 +542,7 @@ await check('session disappearance clears markers without stale content', async 
   await waitFrame()
   assert.equal(document.querySelectorAll('.smcp-bar').length, 0)
   assert.equal(globalThis.__smcpDebug.sessionId, undefined)
+  assert.equal(officialSlot.style.display, '')
 })
 
 await check('dispose removes every injected runtime surface', () => {

@@ -1,7 +1,7 @@
 /** User-message and visible-assistant-output projection for the navigator. */
 
-import type { ChatConversationViewNode } from '@deepseek-ai/dsh-client-runtime/client'
 import type { ContentBlock } from '@deepseek-ai/dsh-llm/types'
+import type { ChatNavigationNode } from './chat-source.ts'
 
 export interface KeyDescriptor {
   /** Stable navigator identity; output segments after the first use a suffix. */
@@ -78,7 +78,7 @@ function outputRuns(data: NodeData): OutputRuns {
 }
 
 function descriptor(
-  node: ChatConversationViewNode,
+  node: ChatNavigationNode,
   role: 'user' | 'assistant',
   text: string,
   suffix = '',
@@ -99,7 +99,7 @@ function descriptor(
  * Produce only user messages and visible assistant text. Adjacent assistant
  * output runs merge; any hidden/non-output node or block breaks continuity.
  */
-export function buildNavigationNodes(nodes: readonly ChatConversationViewNode[]): KeyDescriptor[] {
+export function buildNavigationNodes(nodes: readonly ChatNavigationNode[]): KeyDescriptor[] {
   const result: KeyDescriptor[] = []
   let continuableAssistant: KeyDescriptor | null = null
 
