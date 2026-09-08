@@ -229,7 +229,6 @@ This project is open source under the [MIT License](LICENSE).
 
 - Fixed the piano-navigation rail from obscuring settings dialogs by detecting visible DSH `role="dialog"` elements, suspending the plugin navigation while a dialog is open, and restoring it after closing;
 - Added integration coverage for visible dialogs, hidden dialogs, and rail restoration while preserving the official Turn Navigator's hidden state;
-- Added contributor-provided piano-navigation prototypes, generation prompts, and design notes.
 
 ### v1.2.2 · 2026-09-07
 
