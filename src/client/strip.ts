@@ -20,6 +20,8 @@ const SCROLL_SELECTOR = '[data-conversation-scroll]'
 const ROW_SELECTOR = '[data-chat-anchor-key]'
 const OWNER_SELECTOR = '[data-smcp-owner="hjj345345"]'
 const OFFICIAL_NAV_SELECTOR = 'nav[aria-label]'
+const DIALOG_SELECTOR = '[role="dialog"]'
+const SETTINGS_SECTION_SELECTOR = '[data-slot="settings.section"]'
 
 function findConversationFlow(): HTMLElement | null {
   const direct = document.querySelector<HTMLElement>(FLOW_SELECTOR)
@@ -53,6 +55,26 @@ function restoreOfficialTurnNavigator(): void {
     delete slot.dataset.smcpOfficialSuppressed
     delete slot.dataset.smcpPreviousDisplay
   }
+}
+
+function isHiddenElement(element: HTMLElement): boolean {
+  for (let current: HTMLElement | null = element; current !== null; current = current.parentElement) {
+    if (current.hidden || current.getAttribute('aria-hidden')?.toLowerCase() === 'true') return true
+    const style = window.getComputedStyle(current)
+    const opacity = Number.parseFloat(style.opacity)
+    if (style.display === 'none' || style.visibility === 'hidden' || (Number.isFinite(opacity) && opacity === 0)) return true
+  }
+  return false
+}
+
+function hasVisibleDialog(): boolean {
+  for (const dialog of document.querySelectorAll<HTMLElement>(DIALOG_SELECTOR)) {
+    if (isHiddenElement(dialog)) continue
+    if (dialog.querySelector(SETTINGS_SECTION_SELECTOR) !== null) return true
+    const rect = dialog.getBoundingClientRect()
+    if (rect.width > 0 && rect.height > 0) return true
+  }
+  return false
 }
 
 const RAIL_TO_FLOW = 108
@@ -489,6 +511,14 @@ function mountStrip(
     paintWidths(null)
   }
 
+  const syncOverlayVisibility = (): void => {
+    const suspended = hasVisibleDialog()
+    if (overlay.hidden === suspended) return
+    overlay.hidden = suspended
+    if (suspended) clearInteraction()
+    else scheduleLayout()
+  }
+
   const jumpTo = (marker: Marker | null): void => {
     if (marker === null || marker.row === null) return
     setCurrent(marker.descriptor.key)
@@ -542,15 +572,22 @@ function mountStrip(
   resizeObserver?.observe(root)
   resizeObserver?.observe(scrollport)
   resizeObserver?.observe(flow)
-  officialNavObserver = new MutationObserver(() => {
+  officialNavObserver = new MutationObserver(records => {
+    const externalMutation = records.some(record => {
+      const target = record.target
+      return !(target.nodeType === 1 && (target as Element).closest(OWNER_SELECTOR) !== null)
+    })
+    if (!externalMutation) return
+    syncOverlayVisibility()
     if (debug.hiddenReason === null) suppressOfficialTurnNavigator()
   })
   officialNavObserver.observe(document.body, {
     attributes: true,
-    attributeFilter: ['aria-label'],
+    attributeFilter: ['aria-label', 'aria-hidden', 'class', 'data-slot', 'data-state', 'hidden', 'role', 'style'],
     childList: true,
     subtree: true,
   })
+  syncOverlayVisibility()
   strip.addEventListener('pointermove', onPointerMove)
   strip.addEventListener('pointerleave', clearInteraction)
   strip.addEventListener('click', onClick)

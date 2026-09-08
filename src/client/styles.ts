@@ -8,6 +8,7 @@ const CSS = `
   isolation: isolate;
   pointer-events: none;
 }
+.smcp-overlay[hidden] { display: none !important; }
 .smcp-strip {
   position: fixed;
   width: 58px;

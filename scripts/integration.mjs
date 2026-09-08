@@ -94,6 +94,27 @@ officialTurnNavigator.appendChild(officialTurn)
 officialSlot.appendChild(officialTurnNavigator)
 document.body.appendChild(officialSlot)
 
+const settingsDialog = document.createElement('div')
+settingsDialog.setAttribute('role', 'dialog')
+settingsDialog.setAttribute('aria-hidden', 'true')
+const settingsSectionOutlet = document.createElement('div')
+settingsSectionOutlet.dataset.slot = 'settings.section'
+settingsDialog.appendChild(settingsSectionOutlet)
+Object.defineProperty(settingsDialog, 'getBoundingClientRect', {
+  value: () => ({ left: 0, top: 0, right: 1280, bottom: 900, width: 1280, height: 900 }),
+  configurable: true,
+})
+document.body.appendChild(settingsDialog)
+
+const offscreenDialog = document.createElement('div')
+offscreenDialog.setAttribute('role', 'dialog')
+offscreenDialog.setAttribute('aria-hidden', 'false')
+Object.defineProperty(offscreenDialog, 'getBoundingClientRect', {
+  value: () => ({ left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 }),
+  configurable: true,
+})
+document.body.appendChild(offscreenDialog)
+
 const nodeMap = new Map([
   ['user:1', {
     key: 'user:1', kind: 'user', anchorSeq: 1,
@@ -215,6 +236,21 @@ await check('mounts only user messages and visible assistant output runs', async
   assert.equal(officialSlot.style.display, 'none')
 })
 
+await check('suspends the owned rail only while a DSH dialog is visible', async () => {
+  const overlay = document.querySelector('.smcp-overlay')
+  assert.equal(overlay.hidden, false)
+
+  settingsDialog.setAttribute('aria-hidden', 'false')
+  await waitFrame()
+  assert.equal(overlay.hidden, true)
+  assert.equal(officialSlot.style.display, 'none')
+
+  settingsDialog.setAttribute('aria-hidden', 'true')
+  await waitFrame()
+  assert.equal(overlay.hidden, false)
+  assert.equal(officialSlot.style.display, 'none')
+})
+
 await check('registers the first-level settings page directly after Agent Presets', async () => {
   assert.equal(settingsSection.options.id, 'sm-context-piano')
   assert.equal(settingsSection.options.order, 21)
@@ -319,6 +355,7 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box[\s\S]*background: rgba\(255, 255, 255, \.08\)/)
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box code[\s\S]*color: #f1f1f3/)
   assert.match(styles, /\.smcp-overlay[\s\S]*z-index: 10000/)
+  assert.match(styles, /\.smcp-overlay\[hidden\][\s\S]*display: none !important/)
   assert.doesNotMatch(styles, /body:has\(\[role="dialog"\]\) \.smcp-overlay/)
   assert.match(styles, /@media \(max-width: 520px\)/)
   assert.match(styles, /@media \(max-width: 360px\)/)
