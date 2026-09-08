@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.2-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-v1.2.3-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -224,6 +224,12 @@ pnpm verify
 本项目采用 [MIT License](LICENSE) 开源。
 
 ## 更新日志
+
+### v1.2.3 · 2026-09-08
+
+- 修复设置弹窗打开时琴键导航遮挡弹窗的问题：检测可见的 DSH `role="dialog"`，弹窗显示期间暂停插件导航，关闭后自动恢复；
+- 增加可见弹窗、隐藏弹窗和导航恢复场景的集成测试，确保官方轮次导航隐藏状态不受影响；
+- 补充贡献者建议的琴键导航原型效果图、生成提示词和设计说明。
 
 ### v1.2.2 · 2026-09-07
 

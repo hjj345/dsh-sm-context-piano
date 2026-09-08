@@ -2,7 +2,7 @@
 
 English documentation · [简体中文（默认）](README.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.2-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-v1.2.3-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -224,6 +224,12 @@ Yes. Language, enablement, and display parameters are persisted through the DSH 
 This project is open source under the [MIT License](LICENSE).
 
 ## Changelog
+
+### v1.2.3 · 2026-09-08
+
+- Fixed the piano-navigation rail from obscuring settings dialogs by detecting visible DSH `role="dialog"` elements, suspending the plugin navigation while a dialog is open, and restoring it after closing;
+- Added integration coverage for visible dialogs, hidden dialogs, and rail restoration while preserving the official Turn Navigator's hidden state;
+- Added contributor-provided piano-navigation prototypes, generation prompts, and design notes.
 
 ### v1.2.2 · 2026-09-07
 
