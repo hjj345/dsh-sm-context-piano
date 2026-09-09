@@ -17,6 +17,7 @@ const CSS = `
   pointer-events: auto;
   touch-action: none;
   outline: none;
+  transition: left 160ms cubic-bezier(.2, .8, .2, 1);
 }
 .smcp-strip:focus-visible::before {
   content: '';
@@ -352,7 +353,7 @@ body[data-ds-dark-theme] .smcp-settings-command-box code { color: #f1f1f3; }
   .smcp-settings-command-box { gap: 10px; padding-left: 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .smcp-bar, .smcp-tooltip, .smcp-settings-switch > span, .smcp-settings-switch > span::after { transition: none; }
+  .smcp-bar, .smcp-strip, .smcp-tooltip, .smcp-settings-switch > span, .smcp-settings-switch > span::after { transition: none; }
 }
 `
 

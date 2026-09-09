@@ -2,7 +2,7 @@
 
 import assert from 'node:assert/strict'
 import { buildNavigationNodes } from '../src/client/keys.ts'
-import { stackPositions, visibleWindow } from '../src/client/strip.ts'
+import { railLeftOf, stackPositions, visibleWindow } from '../src/client/strip.ts'
 import {
   DEFAULT_SETTINGS,
   decodeSettings,
@@ -56,6 +56,11 @@ assert.match(result[2].preview, /工具后的第一段输出/)
 assert.match(result[3].preview, /工具后的第二段输出/)
 assert.ok(result.every(item => !/内部推理|edit|read/.test(item.preview)))
 
+assert.equal(railLeftOf(580), 24)
+assert.equal(railLeftOf(132), 24)
+assert.equal(railLeftOf(124), 16)
+assert.equal(railLeftOf(100), 16)
+
 assert.deepEqual(visibleWindow(30, 15), { start: 5, end: 25 })
 assert.deepEqual(visibleWindow(5, 4), { start: 0, end: 5 })
 const positions = stackPositions(5)
@@ -75,4 +80,4 @@ assert.doesNotThrow(() => validateSettings(DEFAULT_SETTINGS))
 assert.throws(() => validateSettings({ ...DEFAULT_SETTINGS, language: 'fr' }))
 assert.throws(() => validateSettings({ ...DEFAULT_SETTINGS, keyGap: 5 }))
 
-console.log('  ok  visible output segmentation, fixed window, and settings bounds (21 assertions)')
+console.log('  ok  visible output segmentation, fixed window, and settings bounds (25 assertions)')
