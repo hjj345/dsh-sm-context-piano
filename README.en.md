@@ -281,3 +281,9 @@ Initial release:
 - Added one-click install-command copying, responsive settings layouts, narrow-screen wrapping, and light/dark theme support;
 - Added mouse and keyboard controls, reduced-motion support, and complete teardown;
 - Validated host/client integration, the settings schema, built artifacts, and jsdom interactions.
+
+## Contributors
+
+Thank you to everyone who contributes discussions, suggestions, testing, and code to this project. Special thanks to:
+
+- [@amazing-fish](https://github.com/amazing-fish) — submitted PR #3, proposing and implementing adaptive rail edge positioning.

@@ -232,6 +232,7 @@ await check('mounts only user messages and visible assistant output runs', async
   assert.equal(document.querySelector('[data-key="partial:5"]'), null)
   assert.equal(strip.getAttribute('role'), 'navigation')
   assert.equal(Number.parseFloat(strip.style.height), 230)
+  assert.equal(Number.parseFloat(strip.style.left), 218)
   assert.equal(globalThis.__smcpDebug.hiddenReason, null)
   assert.equal(officialSlot.style.display, 'none')
 })
@@ -418,6 +419,11 @@ await check('the full rail continuously drives the hover wave and preview', asyn
   assert.equal(window.getComputedStyle(title).fontWeight, '400')
   assert.match(tooltip.textContent, /第二个对话节点/)
   assert.doesNotMatch(tooltip.textContent, /token|工具|read_file|assistant/i)
+  tooltip.style.left = '0px'
+  const transitionEnd = new window.Event('transitionend')
+  Object.defineProperty(transitionEnd, 'propertyName', { value: 'left' })
+  strip.dispatchEvent(transitionEnd)
+  assert.notEqual(tooltip.style.left, '0px')
 })
 
 await check('hover uses actual bar geometry and ignores distant empty rail space', async () => {

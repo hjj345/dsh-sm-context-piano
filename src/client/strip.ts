@@ -78,6 +78,7 @@ function hasVisibleDialog(): boolean {
 }
 
 const RAIL_TO_FLOW = 108
+const RAIL_WIDTH = 58
 const RAIL_EDGE_LEFT = 24
 const TOOLTIP_GAP = 6
 const BASE_WIDTH = 10
@@ -110,10 +111,11 @@ export function visibleWindow(total: number, center: number, size = DEFAULT_SETT
   return { start, end: start + count }
 }
 
-/** Rail left offset in flow-parent coordinates: dock to the pane edge when the
- * left margin is roomy, fall back to content-anchored when it is tight. */
-export function railLeftOf(flowLeft: number): number {
-  return Math.max(16, Math.min(flowLeft - RAIL_TO_FLOW, RAIL_EDGE_LEFT))
+/** Rail left offset from the conversation root, based on the message column. */
+export function railLeftOf(contentLeft: number, rootLeft = 0): number {
+  const flowLeft = contentLeft - rootLeft
+  const gap = Math.max(16, Math.min(flowLeft - RAIL_TO_FLOW, RAIL_EDGE_LEFT))
+  return Math.max(16, flowLeft - RAIL_WIDTH - gap)
 }
 
 export function stackPositions(
@@ -298,6 +300,12 @@ function mountStrip(
     tooltip.style.top = `${top.toFixed(1)}px`
   }
 
+  const onStripTransitionEnd = (event: TransitionEvent): void => {
+    if (event.propertyName !== 'left') return
+    const hovered = markerByKey(hoverKey)
+    if (hovered !== null) positionTooltip(hovered)
+  }
+
   const setHover = (marker: Marker | null): void => {
     const key = marker?.descriptor.key ?? null
     if (key === hoverKey) return
@@ -346,11 +354,16 @@ function mountStrip(
     const flowRect = flow.getBoundingClientRect()
     const rootHeight = root.clientHeight || rootRect.height
     const rootWidth = root.clientWidth || rootRect.width
-    const measuredFlowLeft = flowRect.left - rootRect.left
+    const messageLefts = [...flow.querySelectorAll<HTMLElement>(ROW_SELECTOR)]
+      .map(row => row.getBoundingClientRect())
+      .filter(rect => rect.width > 0 && Number.isFinite(rect.left))
+      .map(rect => rect.left)
+    const measuredContentLeft = messageLefts.length > 0 ? Math.min(...messageLefts) : flowRect.left
+    const measuredFlowLeft = measuredContentLeft - rootRect.left
     const flowLeft = Number.isFinite(measuredFlowLeft) && flowRect.width > 0
       ? measuredFlowLeft
       : Math.max(96, (rootWidth - Math.min(760, rootWidth)) / 2)
-    railLeft = railLeftOf(flowLeft)
+    railLeft = railLeftOf(rootRect.left + flowLeft, rootRect.left)
     const config = settings.getSnapshot()
     const height = railHeight(config)
     strip.style.left = `${(rootRect.left + railLeft).toFixed(1)}px`
@@ -600,6 +613,7 @@ function mountStrip(
   strip.addEventListener('click', onClick)
   strip.addEventListener('keydown', onKeyDown)
   strip.addEventListener('blur', clearInteraction)
+  strip.addEventListener('transitionend', onStripTransitionEnd)
   scrollport.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', scheduleLayout)
   const listUnsub = ctx.sessions.list.subscribe(bindSession)
@@ -622,6 +636,7 @@ function mountStrip(
     strip.removeEventListener('click', onClick)
     strip.removeEventListener('keydown', onKeyDown)
     strip.removeEventListener('blur', clearInteraction)
+    strip.removeEventListener('transitionend', onStripTransitionEnd)
     scrollport.removeEventListener('scroll', onScroll)
     window.removeEventListener('resize', scheduleLayout)
     if (retryTimer !== undefined) window.clearTimeout(retryTimer)
