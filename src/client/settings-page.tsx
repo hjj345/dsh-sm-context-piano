@@ -23,8 +23,8 @@ import type {
 import { translate } from './locales.ts'
 import type { SmContextPianoKey } from './locales.ts'
 
-const VERSION = 'v1.2.3'
-const RELEASE_DATE = '2026-09-08'
+const VERSION = 'v1.2.4'
+const RELEASE_DATE = '2026-09-09'
 const AUTHOR = 'Jack·Huang'
 const EMAIL = 'jack698698@gmail.com'
 const GITHUB_URL = 'https://github.com/hjj345/dsh-sm-context-piano'
