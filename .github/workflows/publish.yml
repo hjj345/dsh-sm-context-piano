@@ -55,6 +55,7 @@ jobs:
       - name: Assemble npm package
         shell: bash
         run: |
+          mkdir -p Relese-command/npm/lib
           cp package.json README.md README.en.md LICENSE cordis.patch.yml Relese-command/npm/
           cp lib/index.js lib/client.js Relese-command/npm/lib/
 
