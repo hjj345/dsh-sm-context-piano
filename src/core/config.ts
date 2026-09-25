@@ -8,7 +8,8 @@ export interface PianoSettings {
   maxVisible: number
 }
 
-export const SETTINGS_NAMESPACE = 'sm-context-piano'
+/** Keep this entry id aligned with the former settings namespace for DSH migration. */
+export const SETTINGS_ENTRY_ID = 'sm-context-piano'
 export const PIANO_LANGUAGE_IDS = ['zh', 'en', 'zh-TW'] as const
 export type PianoLanguage = typeof PIANO_LANGUAGE_IDS[number]
 export const DEFAULT_SETTINGS: PianoSettings = {

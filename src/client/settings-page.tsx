@@ -1,8 +1,6 @@
 import { useCallback, useState, useSyncExternalStore } from 'react'
 import type { ChangeEvent, ReactNode } from 'react'
-import type {
-  SettingsScope,
-} from '@deepseek-ai/dsh-client-runtime/client'
+import type { ClientRemote } from '@deepseek-ai/dsh-api-remotes/client'
 import type {
   InjectFace,
   PropsRuntime,
@@ -10,6 +8,7 @@ import type {
 import iconUrl from '../../images/sm-context-piano-settings-icon.png'
 import {
   DEFAULT_SETTINGS,
+  SETTINGS_ENTRY_ID,
   SETTINGS_LIMITS,
   decodeSettings,
   isPianoLanguage,
@@ -39,17 +38,118 @@ const LANGUAGE_OPTIONS: readonly { value: PianoLanguage; label: string }[] = [
 type SettingsErrorKey = 'settings.writeError' | 'settings.copyError'
 
 export interface PianoSettingsPageInjected {
-  scope: SettingsScope<PianoSettings>
+  scope: PianoSettingsScope
 }
 
 export type PianoSettingsPageProps =
   PropsRuntime<'settings.section'>
   & InjectFace<PianoSettingsPageInjected>
 
-export function createPianoSettingsSource(scope: SettingsScope<PianoSettings>): PianoSettingsSource {
+export interface PianoSettingsSnapshot {
+  status: 'loading' | 'ready' | 'unavailable'
+  writable: boolean
+  revision: number
+  value: PianoSettings
+}
+
+export interface PianoSettingsScope {
+  getSnapshot(): PianoSettingsSnapshot
+  subscribe(listener: () => void): () => void
+  set<K extends keyof PianoSettings>(field: K, value: PianoSettings[K]): Promise<void>
+  unset(field: keyof PianoSettings): Promise<void>
+  reset(): Promise<void>
+}
+
+export interface PianoSettingsController {
+  scope: PianoSettingsScope
+  source: PianoSettingsSource
+  dispose(): void
+}
+
+export function createPianoSettingsSource(remote: ClientRemote): PianoSettingsController {
+  type Entry = { ns: string; revision: number; value: unknown }
+  let entry: Entry | undefined
+  let snapshot: PianoSettingsSnapshot = {
+    status: 'loading',
+    writable: false,
+    revision: 0,
+    value: DEFAULT_SETTINGS,
+  }
+  let disposed = false
+  let readGeneration = 0
+  let writeQueue = Promise.resolve()
+  const listeners = new Set<() => void>()
+
+  const publish = (status: PianoSettingsSnapshot['status'], writable: boolean): void => {
+    if (disposed) return
+    snapshot = {
+      status,
+      writable,
+      revision: entry?.revision ?? 0,
+      value: entry === undefined ? DEFAULT_SETTINGS : decodeSettings(entry.value) ?? DEFAULT_SETTINGS,
+    }
+    for (const listener of listeners) listener()
+  }
+
+  const refresh = async (): Promise<void> => {
+    const generation = ++readGeneration
+    try {
+      const result = await remote.settings.describe()
+      if (disposed || generation !== readGeneration) return
+      entry = result.namespaces.find((candidate: Entry) => candidate.ns === SETTINGS_ENTRY_ID)
+      publish(entry === undefined ? 'unavailable' : 'ready', entry !== undefined && result.writable)
+    } catch {
+      if (disposed || generation !== readGeneration) return
+      publish('unavailable', false)
+    }
+  }
+
+  const write = (ops: { op: 'set'; path: string[]; value: PianoSettings[keyof PianoSettings] }[] | { op: 'unset'; path: string[] }[]): Promise<void> => {
+    const operation = writeQueue.then(async () => {
+      if (disposed) throw new Error('settings controller disposed')
+      if (entry === undefined || !snapshot.writable) await refresh()
+      if (entry === undefined || !snapshot.writable) throw new Error('settings unavailable')
+      const revision = entry.revision
+      try {
+        entry = await remote.settings.mutate(SETTINGS_ENTRY_ID, ops, revision)
+        publish('ready', snapshot.writable)
+      } catch (error) {
+        await refresh()
+        throw error
+      }
+    })
+    writeQueue = operation.catch(() => {})
+    return operation
+  }
+
+  const scope: PianoSettingsScope = {
+    getSnapshot: () => snapshot,
+    subscribe: listener => {
+      listeners.add(listener)
+      return () => { listeners.delete(listener) }
+    },
+    set: (field, value) => write([{ op: 'set', path: [field], value }]),
+    unset: field => write([{ op: 'unset', path: [field] }]),
+    reset: () => write((['language', 'enabled', 'keyHeight', 'keyGap', 'maxVisible'] as const).map(field => ({ op: 'unset' as const, path: [field] }))),
+  }
+  const source: PianoSettingsSource = {
+    getSnapshot: () => snapshot.value,
+    subscribe: scope.subscribe,
+  }
+  const stopListening = remote.$on('settings/document-updated', (ns: string) => {
+    if (ns === SETTINGS_ENTRY_ID) void refresh()
+  })
+  void refresh()
+
   return {
-    getSnapshot: () => decodeSettings(scope.getSnapshot().value) ?? DEFAULT_SETTINGS,
-    subscribe: (listener) => scope.subscribe(listener),
+    scope,
+    source,
+    dispose: () => {
+      disposed = true
+      readGeneration += 1
+      stopListening()
+      listeners.clear()
+    },
   }
 }
 
@@ -100,15 +200,7 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
   }
   const reset = (): void => {
     setError(null)
-    void (async () => {
-      try {
-        for (const field of ['language', 'enabled', 'keyHeight', 'keyGap', 'maxVisible'] as const) {
-          await scope.unset(field)
-        }
-      } catch {
-        setError('settings.writeError')
-      }
-    })()
+    void scope.reset().catch(() => { setError('settings.writeError') })
   }
   const copyCommand = (): void => {
     setError(null)

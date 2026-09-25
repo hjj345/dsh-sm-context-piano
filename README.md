@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.4-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-v1.2.4-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-min%200.1.7--rc.1-5b6?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.7-rc.1) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -13,6 +13,8 @@ npm：[@hjj345345/dsh-sm-context-piano](https://www.npmjs.com/package/%40hjj3453
 </p>
 
 DeepSeek Harness Web GUI 的 Codex 式对话琴键导航插件。
+
+**最低支持版本：DSH 0.1.7-rc.1。**
 
 它在聊天正文左侧增加一组紧凑的横线琴键，将长对话压缩为可预览、可定位的语义节点。用户可以沿琴键快速浏览对话结构，悬停查看摘要，点击或使用键盘跳转到目标段落，而不必反复拖动滚动条寻找上下文。
 
@@ -238,7 +240,7 @@ pnpm verify
 
 ### v1.2.2 · 2026-09-07
 
-- 当前版本开始强兼容 DSH 0.1.2-rc.1 及更高版本；
+- 当时加入 DSH 0.1.2-rc.1 Chat target 兼容；当前最低支持版本见文档顶部；
 - 改用 DSH 0.1.2-rc.1 的 `uiConversation` Chat target 读取对话节点，避免依赖旧版 Session snapshot；
 - 插件成功挂载后精准屏蔽 DSH 0.1.2-rc.1 内置“轮次导航”，并在插件关闭或异常时恢复官方导航；
 - 增加对 DSH 0.1.2-rc.1 官方 ChatView、TurnNavigator 和历史轮次投影的集成测试。
@@ -270,7 +272,7 @@ pnpm verify
 
 - 修复宿主核心包被插件普通依赖遮蔽的问题；
 - 将 `@deepseek-ai/dsh-settings` 和 `@deepseek-ai/schemastery` 改为宿主提供的 peer 依赖；
-- 更新开发构建基线到 DSH 0.1.1-rc.2，同时保留对已发布 DSH 列车的兼容声明。
+- 当时将开发构建基线更新到 DSH 0.1.1-rc.2；当前最低支持版本见文档顶部。
 
 ### v1.0.0 · 2026-08-21
 

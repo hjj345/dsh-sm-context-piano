@@ -21,7 +21,7 @@
 - [data-conversation-scroll]：滚动容器；
 - ConversationSnapshot.chat.order/nodes：业务节点顺序和内容。
 
-插件通过官方 `settings.section` 注册一级设置页，排序值为 21，紧随排序值 20 的 Agent Presets。设置由 `ctx.settingsScope` 读取和写入宿主；插件不注册 HTTP 路由、不访问 token meter、不写 systemPrompt，也不修改 Session。
+插件通过官方 `settings.section` 注册一级设置页，排序值为 21，紧随排序值 20 的 Agent Presets。Host 通过 `Config` schema 声明可即时修改的 profile 设置，客户端经 `ctx.remote.settings` 读取、更新和重置；条目 ID 保留为 `sm-context-piano`，以便 DSH 将旧设置导入对应的 profile entry。插件不注册 HTTP 路由、不访问 token meter、不写 systemPrompt，也不修改 Session。最低支持 DSH `0.1.7-rc.1`。
 
 ## 3. 可见节点生成
 

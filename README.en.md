@@ -2,7 +2,7 @@
 
 English documentation · [简体中文（默认）](README.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.4-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-v1.2.4-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-min%200.1.7--rc.1-5b6?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.7-rc.1) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -13,6 +13,8 @@ npm: [@hjj345345/dsh-sm-context-piano](https://www.npmjs.com/package/%40hjj34534
 </p>
 
 A Codex-style conversation navigator for the DeepSeek Harness Web GUI.
+
+**Minimum supported version: DSH 0.1.7-rc.1.**
 
 It adds a compact rail of horizontal keys beside the transcript and condenses a long conversation into semantic nodes that can be previewed and located. Users can scan the conversation structure, hover for summaries, and click or use the keyboard to jump to a target paragraph instead of repeatedly dragging the scrollbar to recover context.
 
@@ -238,7 +240,7 @@ This project is open source under the [MIT License](LICENSE).
 
 ### v1.2.2 · 2026-09-07
 
-- Starting with this version, strong compatibility is provided for DSH 0.1.2-rc.1 and later versions;
+- Added DSH 0.1.2-rc.1 Chat target support at that time; see the top of this document for the current minimum;
 - Read conversation nodes from the DSH 0.1.2-rc.1 `uiConversation` Chat target instead of the legacy Session snapshot;
 - Hide DSH 0.1.2-rc.1's built-in Turn Navigator only after this plugin mounts successfully, and restore it when the plugin is disabled or unavailable;
 - Added integration coverage for the DSH 0.1.2-rc.1 ChatView, TurnNavigator, and historical turn projection.
@@ -270,7 +272,7 @@ This project is open source under the [MIT License](LICENSE).
 
 - Fixed the plugin dependency contract so host core packages can no longer be hoisted over the host-provided versions;
 - Moved `@deepseek-ai/dsh-settings` and `@deepseek-ai/schemastery` to host-provided peer dependencies;
-- Updated the development build baseline to DSH 0.1.1-rc.2 while retaining compatibility declarations for published DSH trains.
+- At that time, the development build baseline moved to DSH 0.1.1-rc.2; see the top of this document for the current minimum.
 
 ### v1.0.0 · 2026-08-21
 

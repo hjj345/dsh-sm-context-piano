@@ -157,28 +157,41 @@ const chatSource = {
 }
 let currentSession = 's1'
 let listSubscriber = () => {}
-let settingsSnapshot = {
-  status: 'ready', writable: true, revision: 1,
-  value: { language: 'zh', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 },
+const defaults = { language: 'zh', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }
+let settingsEntry = {
+  ns: 'sm-context-piano', revision: 1,
+  value: { ...defaults },
 }
-const settingsSubscribers = new Set()
-const publishSettings = (field, value) => {
-  settingsSnapshot = {
-    ...settingsSnapshot,
-    revision: settingsSnapshot.revision + 1,
-    value: { ...settingsSnapshot.value, [field]: value },
-  }
-  for (const subscriber of settingsSubscribers) subscriber()
-}
-const settingsScope = {
-  getSnapshot: () => settingsSnapshot,
-  subscribe: fn => { settingsSubscribers.add(fn); return () => { settingsSubscribers.delete(fn) } },
-  set: async (field, value) => { publishSettings(field, value) },
-  unset: async field => {
-    const defaults = { language: 'zh', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }
-    publishSettings(field, defaults[field])
+let settingsWriteCount = 0
+let onSettingsDocumentUpdated = () => {}
+const settingsRemote = {
+  settings: {
+    describe: async () => ({ writable: true, namespaces: [settingsEntry] }),
+    mutate: async (ns, ops, expectedRevision) => {
+      assert.equal(ns, 'sm-context-piano')
+      assert.equal(expectedRevision, settingsEntry.revision)
+      settingsWriteCount += 1
+      for (const op of ops) {
+        settingsEntry = {
+          ...settingsEntry,
+          value: {
+            ...settingsEntry.value,
+            [op.path[0]]: op.op === 'set' ? op.value : defaults[op.path[0]],
+          },
+        }
+      }
+      settingsEntry = { ...settingsEntry, revision: settingsEntry.revision + 1 }
+      onSettingsDocumentUpdated(ns, settingsEntry.revision)
+      return settingsEntry
+    },
+  },
+  $on: (event, listener) => {
+    assert.equal(event, 'settings/document-updated')
+    onSettingsDocumentUpdated = listener
+    return () => { onSettingsDocumentUpdated = () => {} }
   },
 }
+let settingsController
 let settingsSection
 const ctx = {
   effect: fn => { const disposer = fn(); globalThis.__disposers.push(disposer); return disposer },
@@ -193,12 +206,7 @@ const ctx = {
   uiConversation: {
     binding: id => id === 's1' ? { target: name => { assert.equal(name, 'chat'); return chatSource } } : undefined,
   },
-  settingsScope: {
-    bind: spec => {
-      assert.equal(spec.namespace, 'sm-context-piano')
-      return settingsScope
-    },
-  },
+  remote: settingsRemote,
   slots: {
     inject: (name, callback) => {
       assert.equal(name, 'settings.section')
@@ -222,6 +230,7 @@ const exports = globalThis.__handoff.factory(spec => {
 
 await check('mounts only user messages and visible assistant output runs', async () => {
   exports.apply(ctx)
+  settingsController = settingsSection.options.inject().scope
   await waitFrame()
   const strip = document.querySelector('.smcp-strip')
   assert.ok(strip)
@@ -256,7 +265,7 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.equal(settingsSection.options.id, 'sm-context-piano')
   assert.equal(settingsSection.options.order, 21)
   assert.equal(settingsSection.options.label(), 'settings.nav')
-  assert.equal(settingsSection.options.inject().scope, settingsScope)
+  assert.equal(settingsSection.options.inject().scope, settingsController)
 
   const React = requireHere('react')
   const { act } = React
@@ -315,7 +324,7 @@ await check('registers the first-level settings page directly after Agent Preset
     languageSelect.dispatchEvent(new window.Event('change', { bubbles: true }))
     await Promise.resolve()
   })
-  assert.equal(settingsSnapshot.value.language, 'en')
+  assert.equal(settingsEntry.value.language, 'en')
   assert.match(mount.textContent, /General settings/)
   assert.match(mount.textContent, /Display/)
   assert.match(mount.textContent, /About/)
@@ -327,7 +336,7 @@ await check('registers the first-level settings page directly after Agent Preset
     languageSelect.dispatchEvent(new window.Event('change', { bubbles: true }))
     await Promise.resolve()
   })
-  assert.equal(settingsSnapshot.value.language, 'zh-TW')
+  assert.equal(settingsEntry.value.language, 'zh-TW')
   assert.match(mount.textContent, /通用設定/)
   assert.match(mount.textContent, /顯示設定/)
   assert.match(mount.textContent, /關於外掛/)
@@ -338,7 +347,8 @@ await check('registers the first-level settings page directly after Agent Preset
     mount.querySelector('.smcp-settings-reset').click()
     await waitFrame()
   })
-  assert.equal(settingsSnapshot.value.language, 'zh')
+  assert.deepEqual(settingsEntry.value, defaults)
+  assert.equal(settingsWriteCount, 3)
   assert.match(mount.textContent, /显示设置/)
   await act(async () => {
     commandBox.querySelector('button').click()
@@ -365,22 +375,22 @@ await check('registers the first-level settings page directly after Agent Preset
 })
 
 await check('live settings resize, limit, disable, and restore the rail', async () => {
-  await settingsScope.set('keyHeight', 4)
-  await settingsScope.set('keyGap', 8)
-  await settingsScope.set('maxVisible', 5)
+  await settingsController.set('keyHeight', 4)
+  await settingsController.set('keyGap', 8)
+  await settingsController.set('maxVisible', 5)
   await waitFrame()
   let strip = document.querySelector('.smcp-strip')
   assert.equal(Number.parseFloat(strip.style.height), 36)
   assert.ok([...document.querySelectorAll('.smcp-bar')].every(bar => Number.parseFloat(bar.style.height) === 4))
 
-  await settingsScope.set('enabled', false)
+  await settingsController.set('enabled', false)
   await waitFrame()
   assert.equal(document.querySelector('.smcp-strip'), null)
   assert.equal(officialSlot.style.display, '')
-  await settingsScope.set('enabled', true)
-  await settingsScope.set('keyHeight', 2)
-  await settingsScope.set('keyGap', 12)
-  await settingsScope.set('maxVisible', 20)
+  await settingsController.set('enabled', true)
+  await settingsController.set('keyHeight', 2)
+  await settingsController.set('keyGap', 12)
+  await settingsController.set('maxVisible', 20)
   await waitFrame()
   await waitFrame()
   strip = document.querySelector('.smcp-strip')
