@@ -1,32 +1,43 @@
-import type { SessionId } from '@deepseek-ai/dsh-client-runtime/client'
+import type { SessionId } from '@deepseek-ai/dsh-api-remotes/client'
+import type { ChatConversationViewNode, ChatSnapshot } from '@deepseek-ai/dsh-client-ui-chat/client'
 
-/** The small Chat target surface consumed by the navigator. */
-export interface ChatNavigationNode {
-  readonly key: string
-  readonly kind: string
-  readonly data: unknown
-}
-
-export interface ChatSnapshot {
-  readonly order: readonly string[]
-  readonly nodes: {
-    get(key: string): ChatNavigationNode | undefined
-  }
-}
-
+export type ChatNavigationNode = ChatConversationViewNode
 export interface ChatTarget {
   getSnapshot(): ChatSnapshot | undefined
   subscribe(listener: () => void): () => void
 }
 
-export interface UiConversation {
-  binding(sessionId: SessionId): {
-    target(name: 'chat'): ChatTarget
-  }
+/** DSH exposes the selected Session through session-scoped UI slots. */
+export interface CurrentSessionSource {
+  getSnapshot(): SessionId | undefined
+  subscribe(listener: () => void): () => void
+  activate(sessionId: SessionId): () => void
 }
 
-declare module '@deepseek-ai/cordis' {
-  interface Context {
-    uiConversation: UiConversation
+export function createCurrentSessionSource(): CurrentSessionSource {
+  const listeners = new Set<() => void>()
+  let active: { token: symbol; sessionId: SessionId } | undefined
+  let current: SessionId | undefined
+  const publish = (next: SessionId | undefined): void => {
+    if (next === current) return
+    current = next
+    for (const listener of listeners) listener()
+  }
+  return {
+    getSnapshot: () => current,
+    subscribe: listener => {
+      listeners.add(listener)
+      return () => { listeners.delete(listener) }
+    },
+    activate: sessionId => {
+      const token = Symbol()
+      active = { token, sessionId }
+      publish(sessionId)
+      return () => {
+        if (active?.token !== token) return
+        active = undefined
+        publish(undefined)
+      }
+    },
   }
 }

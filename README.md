@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.5-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-%3E%3D%20v0.1.7--rc.1-orange?style=flat-square)](#兼容性与实现边界) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#兼容性与实现边界)
+[![version](https://img.shields.io/badge/version-v1.2.6-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-%3E%3D%20v0.1.7--rc.1-orange?style=flat-square)](#兼容性与实现边界) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#兼容性与实现边界)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -43,6 +43,7 @@ DeepSeek Harness Web GUI 的 Codex 式对话琴键导航插件。
 - **连续悬停波形**：整条轨道都是有效命中区域，鼠标位于琴键间隙时也会自动选择最近节点，并以平滑宽度变化提示位置。
 - **安全文本预览**：悬停卡片展示标题和正文摘要，跟随明暗主题并自动避开窗口边界；内容始终以纯文本写入。
 - **快速定位**：点击琴键或按下 Enter、Space，平滑滚动到目标消息起始位置。
+- **替代官方轮次导航**：琴键可用时隐藏 DSH 右侧官方轮次导航；插件关闭或当前没有可导航内容时恢复官方导航。
 - **阅读位置同步**：滚动聊天时，当前段落琴键会立即加深并加长，固定窗口随阅读位置重新居中。
 - **流式增量更新**：模型持续输出或历史内容更新时复用已有琴键 DOM，避免闪烁并保留当前交互状态。
 - **三语设置页**：支持简体中文、English、繁體中文，默认简体中文；选择会即时生效并由 DSH 持久化。
@@ -150,7 +151,7 @@ dsh plugin --profile web add link:C:/path/to/dsh-sm-context-piano
 
 ## 工作原理
 
-1. 从 DSH `ConversationSnapshot.chat.order/nodes` 读取当前会话中已经加载的有序节点；
+1. 从 DSH 的会话作用域 UI 接口读取当前对话中已经加载的有序节点；
 2. 将用户消息和模型可见文本转换为安全的导航描述，过滤所有非输出节点；
 3. 按连续性合并模型输出，并为不连续输出建立稳定的分段 key；
 4. 使用 `[data-chat-anchor-key]` 将语义节点与真实消息行对齐；
@@ -166,6 +167,7 @@ dsh plugin --profile web add link:C:/path/to/dsh-sm-context-piano
 - 工具、编辑、命令、推理和内部状态不会创建琴键，也不会进入悬停预览。
 - 同一 DOM 行内由非输出 block 分隔的多段模型文本可以生成多根琴键，但受 Harness 行级锚点限制，跳转位置均为该消息行起点。
 - 页面宽度不足、琴键区域与正文重叠或没有可导航节点时，插件会安全隐藏轨道，不影响 DSH 页面使用。
+- 插件琴键产生可显示节点时隐藏官方右侧轮次导航；插件停用、卸载或节点清空后恢复官方导航。
 - 当前构建环境要求 Node.js `^22.19.0 || >=24.0.0`。
 
 ## 安全与隐私
@@ -226,6 +228,12 @@ pnpm verify
 本项目采用 [MIT License](LICENSE) 开源。
 
 ## 更新日志
+
+### v1.2.6 · 2026-09-26
+
+- 适配 DSH 0.1.7-rc.1 起的会话和 Chat 接口，使用会话作用域的 UI 槽获取当前对话；
+- 修复新版设置 Remote 的依赖注入及 `{ok, value}` 返回值处理，恢复设置读取、修改和持久化；
+- 补充 npm 包 `engines.dsh` 声明及琴键导航接管官方轮次导航的说明。
 
 ### v1.2.5 · 2026-09-25
 

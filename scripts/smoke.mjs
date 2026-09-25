@@ -2,6 +2,7 @@
 
 import { createRequire } from 'node:module'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 
 const requireHere = createRequire(import.meta.url)
 let passed = 0
@@ -30,8 +31,20 @@ check('host core packages are peer-only', () => {
 })
 
 check('manifest requests the DSH 0.1.7 settings and remotes APIs', () => {
+  assert.equal(manifest.version, '1.2.6')
+  assert.equal(manifest.engines.dsh, '>=0.1.7-rc.1')
   assert.ok(manifest.dsh.client.inject.includes('@deepseek-ai/dsh-api-remotes'))
+  assert.ok(manifest.dsh.client.inject.includes('@deepseek-ai/dsh-api-session-controller'))
   assert.ok(manifest.dsh.client.inject.includes('@deepseek-ai/dsh-client-ui-chat'))
+  assert.ok(!manifest.dsh.client.inject.includes('@deepseek-ai/dsh-client-runtime'))
+})
+
+check('both READMEs declare the same minimum DSH version and release', () => {
+  for (const file of ['README.md', 'README.en.md']) {
+    const readme = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8')
+    assert.match(readme, /DSH 0\.1\.7-rc\.1/)
+    assert.match(readme, /version-v1\.2\.6/)
+  }
 })
 
 const host = await import('../lib/index.js')
@@ -92,7 +105,7 @@ const exports = globalThis.__handoff.factory(spec => {
 })
 
 check('client exposes the DSH plugin contract', () => {
-  assert.deepEqual(exports.inject, ['sessions', 'uiConversation', 'locale', 'slots', 'remote'])
+  assert.deepEqual(exports.inject, ['sessions', 'uiConversation', 'locale', 'slots', 'remote', 'remote.settings'])
   assert.equal(typeof exports.apply, 'function')
 })
 
@@ -103,25 +116,21 @@ let settingsEntry = {
 }
 let onDocumentUpdated = () => {}
 check('client binds profile settings and registers the settings page', () => {
-  const registrations = []
+  const localeRegistrations = []
+  const slotRegistrations = []
   const sections = []
   let effects = 0
   exports.apply({
     effect: fn => { effects += 1; fn(); return () => {} },
     locale: {
-      register: (namespace, dictionaries) => registrations.push([namespace, dictionaries]),
+      register: (namespace, dictionaries) => localeRegistrations.push([namespace, dictionaries]),
       bind: () => key => key,
     },
-    sessions: {
-      list: { getSnapshot: () => ({ current: undefined }), subscribe: () => () => {} },
-      binding: () => undefined,
-    },
-    uiConversation: {
-      binding: () => ({ target: () => ({ getSnapshot: () => undefined, subscribe: () => () => {} }) }),
-    },
+    sessions: {},
+    uiConversation: {},
     remote: {
       settings: {
-        describe: async () => ({ writable: true, namespaces: [settingsEntry] }),
+        describe: async () => ({ ok: true, value: { writable: true, namespaces: [settingsEntry] } }),
         mutate: async (ns, ops, revision) => {
           assert.equal(ns, 'sm-context-piano')
           assert.equal(revision, settingsEntry.revision)
@@ -131,7 +140,7 @@ check('client binds profile settings and registers the settings page', () => {
           }
           settingsEntry = { ...settingsEntry, revision: settingsEntry.revision + 1 }
           onDocumentUpdated(ns, settingsEntry.revision)
-          return settingsEntry
+          return { ok: true, value: settingsEntry }
         },
       },
       $on: (event, listener) => {
@@ -142,17 +151,19 @@ check('client binds profile settings and registers the settings page', () => {
     },
     slots: {
       inject: (name, callback) => {
-        assert.equal(name, 'settings.section')
+        assert.ok(['settings.section', 'conversation.session.header.actions'].includes(name))
         callback()
       },
       register: (options, component) => {
-        sections.push([options, component])
+        slotRegistrations.push([options, component])
+        if (options.id === 'sm-context-piano') sections.push([options, component])
         return () => {}
       },
     },
   })
   assert.equal(effects, 4)
-  assert.equal(registrations[0][0], 'sm-context-piano')
+  assert.equal(localeRegistrations[0][0], 'sm-context-piano')
+  assert.equal(slotRegistrations.length, 2)
   assert.equal(sections.length, 1)
   assert.equal(sections[0][0].id, 'sm-context-piano')
   assert.equal(sections[0][0].order, 21)

@@ -1,8 +1,9 @@
 /** Fixed-window Codex-style navigator for user and visible assistant output. */
 
-import type { ClientContext, SessionId } from '@deepseek-ai/dsh-client-runtime/client'
+import type { Context } from '@deepseek-ai/cordis'
+import type { SessionId } from '@deepseek-ai/dsh-api-remotes/client'
 import type {} from '@deepseek-ai/dsh-client-ui-conversation/client'
-import type { ChatNavigationNode, ChatSnapshot } from './chat-source.ts'
+import type { ChatNavigationNode, ChatTarget, CurrentSessionSource } from './chat-source.ts'
 import type { Translate } from '@deepseek-ai/dsh-client-ui-slots'
 import { buildNavigationNodes } from './keys.ts'
 import type { KeyDescriptor } from './keys.ts'
@@ -131,8 +132,9 @@ export function stackPositions(
 }
 
 export function attachKeyStrip(
-  ctx: ClientContext,
+  ctx: Context,
   t: Translate<SmContextPianoKey>,
+  selectedSession: CurrentSessionSource,
   settings: PianoSettingsSource = DEFAULT_SETTINGS_SOURCE,
 ): () => void {
   if (typeof document === 'undefined' || typeof MutationObserver === 'undefined' || document.body === null) return () => {}
@@ -158,7 +160,7 @@ export function attachKeyStrip(
     mountedFlow = nextFlow
     if (nextFlow !== null) {
       try {
-        disposeMount = mountStrip(ctx, nextFlow, t, settings)
+        disposeMount = mountStrip(ctx, nextFlow, t, settings, selectedSession)
       } catch (error) {
         console.warn('[dsh-sm-context-piano] navigator mount failed:', error)
       }
@@ -209,10 +211,11 @@ export function attachKeyStrip(
 }
 
 function mountStrip(
-  ctx: ClientContext,
+  ctx: Context,
   flow: HTMLElement,
   t: Translate<SmContextPianoKey>,
   settings: PianoSettingsSource,
+  selectedSession: CurrentSessionSource,
 ): () => void {
   const scrollport = flow.closest<HTMLElement>(SCROLL_SELECTOR) ?? flow.parentElement
   const root = scrollport?.parentElement
@@ -258,7 +261,7 @@ function mountStrip(
   let hoverKey: string | null = null
   let currentKey: string | null = null
   let railLeft = 0
-  let chatSource: { getSnapshot: () => ChatSnapshot | undefined; subscribe: (listener: () => void) => () => void } | undefined
+  let chatSource: ChatTarget | undefined
   let officialNavObserver: MutationObserver | undefined
 
   const markerByKey = (key: string | null): Marker | null => key === null
@@ -462,7 +465,7 @@ function mountStrip(
 
   const bindSession = (): void => {
     if (!alive) return
-    const nextId = ctx.sessions.list.getSnapshot().current
+    const nextId = selectedSession.getSnapshot()
     if (nextId !== sessionId) {
       sessionUnsub?.()
       sessionUnsub = undefined
@@ -616,7 +619,7 @@ function mountStrip(
   strip.addEventListener('transitionend', onStripTransitionEnd)
   scrollport.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('resize', scheduleLayout)
-  const listUnsub = ctx.sessions.list.subscribe(bindSession)
+  const sessionSelectionUnsub = selectedSession.subscribe(bindSession)
   const settingsUnsub = settings.subscribe(scheduleLayout)
 
   bindSession()
@@ -624,7 +627,7 @@ function mountStrip(
 
   return () => {
     alive = false
-    listUnsub()
+    sessionSelectionUnsub()
     settingsUnsub()
     sessionUnsub?.()
     officialNavObserver?.disconnect()

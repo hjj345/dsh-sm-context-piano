@@ -155,8 +155,6 @@ const chatSource = {
   getSnapshot: () => snapshot.chat,
   subscribe: fn => { snapshotSubscriber = fn; return () => { snapshotSubscriber = () => {} } },
 }
-let currentSession = 's1'
-let listSubscriber = () => {}
 const defaults = { language: 'zh', enabled: true, keyHeight: 2, keyGap: 12, maxVisible: 20 }
 let settingsEntry = {
   ns: 'sm-context-piano', revision: 1,
@@ -166,7 +164,7 @@ let settingsWriteCount = 0
 let onSettingsDocumentUpdated = () => {}
 const settingsRemote = {
   settings: {
-    describe: async () => ({ writable: true, namespaces: [settingsEntry] }),
+    describe: async () => ({ ok: true, value: { writable: true, namespaces: [settingsEntry] } }),
     mutate: async (ns, ops, expectedRevision) => {
       assert.equal(ns, 'sm-context-piano')
       assert.equal(expectedRevision, settingsEntry.revision)
@@ -182,7 +180,7 @@ const settingsRemote = {
       }
       settingsEntry = { ...settingsEntry, revision: settingsEntry.revision + 1 }
       onSettingsDocumentUpdated(ns, settingsEntry.revision)
-      return settingsEntry
+      return { ok: true, value: settingsEntry }
     },
   },
   $on: (event, listener) => {
@@ -193,28 +191,29 @@ const settingsRemote = {
 }
 let settingsController
 let settingsSection
+let sessionProbe
+let probeRoot
 const ctx = {
   effect: fn => { const disposer = fn(); globalThis.__disposers.push(disposer); return disposer },
   locale: { register: () => {}, bind: () => key => key },
-  sessions: {
-    list: {
-      getSnapshot: () => ({ current: currentSession }),
-      subscribe: fn => { listSubscriber = fn; return () => { listSubscriber = () => {} } },
-    },
-    binding: id => id === 's1' ? { session } : undefined,
-  },
+  sessions: {},
   uiConversation: {
-    binding: id => id === 's1' ? { target: name => { assert.equal(name, 'chat'); return chatSource } } : undefined,
+    binding: id => ['s1', 's2'].includes(id) ? { target: name => { assert.equal(name, 'chat'); return chatSource } } : undefined,
   },
   remote: settingsRemote,
   slots: {
     inject: (name, callback) => {
-      assert.equal(name, 'settings.section')
+      assert.ok(['settings.section', 'conversation.session.header.actions'].includes(name))
       callback()
     },
     register: (options, component) => {
-      settingsSection = { options, component }
-      return () => { settingsSection = undefined }
+      const registration = { options, component }
+      if (options.id === 'sm-context-piano') settingsSection = registration
+      if (options.id === 'sm-context-piano-session-probe') sessionProbe = registration
+      return () => {
+        if (settingsSection === registration) settingsSection = undefined
+        if (sessionProbe === registration) sessionProbe = undefined
+      }
     },
   },
 }
@@ -231,6 +230,19 @@ const exports = globalThis.__handoff.factory(spec => {
 await check('mounts only user messages and visible assistant output runs', async () => {
   exports.apply(ctx)
   settingsController = settingsSection.options.inject().scope
+  const React = requireHere('react')
+  const { act } = React
+  const { createRoot } = requireHere('react-dom/client')
+  const probeMount = document.createElement('div')
+  document.body.appendChild(probeMount)
+  probeRoot = createRoot(probeMount)
+  await act(async () => {
+    probeRoot.render(React.createElement(sessionProbe.component, {
+      ...sessionProbe.options.inject(),
+      sessionId: 's1',
+    }))
+    await waitFrame()
+  })
   await waitFrame()
   const strip = document.querySelector('.smcp-strip')
   assert.ok(strip)
@@ -244,6 +256,32 @@ await check('mounts only user messages and visible assistant output runs', async
   assert.equal(Number.parseFloat(strip.style.left), 218)
   assert.equal(globalThis.__smcpDebug.hiddenReason, null)
   assert.equal(officialSlot.style.display, 'none')
+})
+
+await check('follows the Session selected by the session-scoped DSH slot', async () => {
+  const React = requireHere('react')
+  const { act } = React
+  await act(async () => {
+    probeRoot.render(React.createElement(sessionProbe.component, {
+      ...sessionProbe.options.inject(),
+      sessionId: 's2',
+    }))
+    await waitFrame()
+  })
+  await waitFrame()
+  assert.equal(globalThis.__smcpDebug.sessionId, 's2')
+  assert.equal(document.querySelectorAll('.smcp-bar').length, 3)
+  assert.equal(officialSlot.style.display, 'none')
+
+  await act(async () => {
+    probeRoot.render(React.createElement(sessionProbe.component, {
+      ...sessionProbe.options.inject(),
+      sessionId: 's1',
+    }))
+    await waitFrame()
+  })
+  await waitFrame()
+  assert.equal(globalThis.__smcpDebug.sessionId, 's1')
 })
 
 await check('suspends the owned rail only while a DSH dialog is visible', async () => {
@@ -287,15 +325,15 @@ await check('registers the first-level settings page directly after Agent Preset
     await waitFrame()
   })
   assert.match(mount.textContent, /sm-context-piano/)
-  assert.match(mount.textContent, /v1\.2\.5/)
-  assert.match(mount.textContent, /2026-09-25/)
+  assert.match(mount.textContent, /v1\.2\.6/)
+  assert.match(mount.textContent, /2026-09-26/)
   assert.match(mount.textContent, /Jack·Huang/)
   assert.match(mount.textContent, /dsh plugin --profile web add @hjj345345\/dsh-sm-context-piano/)
   assert.match(mount.textContent, /230px/)
   assert.match(mount.textContent, /通用设置/)
   assert.match(mount.textContent, /显示设置/)
   assert.match(mount.textContent, /关于插件/)
-  assert.match(mount.textContent, /v1\.2\.5/)
+  assert.match(mount.textContent, /v1\.2\.6/)
   assert.match(mount.querySelector('.smcp-settings-icon').getAttribute('src'), /^data:image\/png;base64,/)
   const languageSelect = mount.querySelector('.smcp-settings-select')
   assert.equal(languageSelect.value, 'zh')
@@ -590,8 +628,12 @@ await check('falls back to the conversation scrollport when the legacy flow mark
 })
 
 await check('session disappearance clears markers without stale content', async () => {
-  currentSession = undefined
-  listSubscriber()
+  const React = requireHere('react')
+  const { act } = React
+  await act(async () => {
+    probeRoot.unmount()
+    await waitFrame()
+  })
   await waitFrame()
   assert.equal(document.querySelectorAll('.smcp-bar').length, 0)
   assert.equal(globalThis.__smcpDebug.sessionId, undefined)

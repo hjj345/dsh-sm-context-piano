@@ -2,7 +2,7 @@
 
 English documentation · [简体中文（默认）](README.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.5-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-%3E%3D%20v0.1.7--rc.1-orange?style=flat-square)](#compatibility-and-boundaries) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#compatibility-and-boundaries)
+[![version](https://img.shields.io/badge/version-v1.2.6-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-%3E%3D%20v0.1.7--rc.1-orange?style=flat-square)](#compatibility-and-boundaries) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#compatibility-and-boundaries)
 
 GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -43,6 +43,7 @@ The number of keys therefore does not simply equal the number of rendered rows. 
 - **Continuous hover wave** — the whole rail is an interactive hit area, so gaps between keys still select the nearest node and smoothly adjust neighboring widths.
 - **Safe text previews** — the hover card shows a title and excerpt, follows light/dark themes, stays inside the viewport, and always writes content as plain text.
 - **Fast paragraph jumps** — click a key or press Enter/Space to scroll to the beginning of its message row.
+- **Replaces the official Turn Navigator** — while plugin keys are available, the plugin hides DSH's right-side navigator; it restores the official navigator when disabled or when no navigable content exists.
 - **Reading-position tracking** — scrolling immediately darkens and lengthens the current key and recenters the fixed window.
 - **Streaming incremental updates** — existing key DOM is reused while model output or loaded history changes, avoiding flicker and preserving interaction state.
 - **Trilingual settings page** — Simplified Chinese, English, and Traditional Chinese are supported, with Simplified Chinese as the default; the choice applies immediately and is persisted by DSH.
@@ -150,7 +151,7 @@ The following screenshots show the Chinese settings page, the plugin enablement 
 
 ## How it works
 
-1. Read the ordered nodes already loaded in the active conversation from `ConversationSnapshot.chat.order/nodes`;
+1. Read ordered nodes loaded in the active conversation through DSH's session-scoped UI API;
 2. Convert user messages and model-visible text into safe navigation descriptors while filtering every non-output node;
 3. Merge assistant output by continuity and assign stable segment keys to separated output;
 4. Match semantic nodes to rendered rows through `[data-chat-anchor-key]`;
@@ -166,6 +167,7 @@ Keys are incrementally reused through stable identities, so streaming replies do
 - Tools, edits, commands, reasoning, and internal states never create keys or enter hover previews.
 - Visible output runs separated inside one DOM row may create multiple keys, but Harness row-level anchors mean they all jump to the beginning of that message row.
 - The rail safely hides when the page is too narrow, its gutter would overlap the transcript, or no navigable nodes exist.
+- The official right-side Turn Navigator is hidden while plugin keys are visible, and restored when the plugin is disabled, unloaded, or has no navigable nodes.
 - The current build environment requires Node.js `^22.19.0 || >=24.0.0`.
 
 ## Security and privacy
@@ -226,6 +228,12 @@ Yes. Language, enablement, and display parameters are persisted through the DSH 
 This project is open source under the [MIT License](LICENSE).
 
 ## Changelog
+
+### v1.2.6 · 2026-09-26
+
+- Adapted to the DSH 0.1.7-rc.1 session and Chat APIs, using the session-scoped UI slot to identify the current conversation;
+- Fixed settings Remote injection and `{ok, value}` response handling so settings can load, update, and persist;
+- Added the npm package `engines.dsh` declaration and documented replacement of the official Turn Navigator.
 
 ### v1.2.5 · 2026-09-25
 

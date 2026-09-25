@@ -22,8 +22,8 @@ import type {
 import { translate } from './locales.ts'
 import type { SmContextPianoKey } from './locales.ts'
 
-const VERSION = 'v1.2.5'
-const RELEASE_DATE = '2026-09-25'
+const VERSION = 'v1.2.6'
+const RELEASE_DATE = '2026-09-26'
 const AUTHOR = 'Jack·Huang'
 const EMAIL = 'jack698698@gmail.com'
 const GITHUB_URL = 'https://github.com/hjj345/dsh-sm-context-piano'
@@ -94,8 +94,10 @@ export function createPianoSettingsSource(remote: ClientRemote): PianoSettingsCo
   const refresh = async (): Promise<void> => {
     const generation = ++readGeneration
     try {
-      const result = await remote.settings.describe()
+      const response = await remote.settings.describe()
       if (disposed || generation !== readGeneration) return
+      if (!response.ok) throw new Error('settings describe failed')
+      const result = response.value
       entry = result.namespaces.find((candidate: Entry) => candidate.ns === SETTINGS_ENTRY_ID)
       publish(entry === undefined ? 'unavailable' : 'ready', entry !== undefined && result.writable)
     } catch {
@@ -111,7 +113,9 @@ export function createPianoSettingsSource(remote: ClientRemote): PianoSettingsCo
       if (entry === undefined || !snapshot.writable) throw new Error('settings unavailable')
       const revision = entry.revision
       try {
-        entry = await remote.settings.mutate(SETTINGS_ENTRY_ID, ops, revision)
+        const response = await remote.settings.mutate(SETTINGS_ENTRY_ID, ops, revision)
+        if (!response.ok) throw new Error('settings mutation failed')
+        entry = response.value
         publish('ready', snapshot.writable)
       } catch (error) {
         await refresh()
