@@ -43,7 +43,11 @@ jobs:
 
       - name: Verify tag version
         shell: bash
-        run: test "$GITHUB_REF_NAME" = "v$(node -p 'require("./package.json").version')"
+        run: |
+          package_version="$(node -p 'require("./package.json").version')"
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            test "$GITHUB_REF_NAME" = "v$package_version"
+          fi
 
       - name: Build and test
         run: pnpm verify
