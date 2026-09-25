@@ -2,7 +2,7 @@
 
 English documentation · [简体中文（默认）](README.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.4-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-min%200.1.7--rc.1-5b6?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.7-rc.1) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-v1.2.5-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-min%200.1.7--rc.1-5b6?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.7-rc.1) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -226,6 +226,12 @@ Yes. Language, enablement, and display parameters are persisted through the DSH 
 This project is open source under the [MIT License](LICENSE).
 
 ## Changelog
+
+### v1.2.5 · 2026-09-25
+
+- Adapted to the DSH 0.1.7-rc.1 settings API by moving plugin settings into profile configuration, retaining the `sm-context-piano` entry ID to migrate existing settings;
+- Switched the client to `remote.settings` for reading, updating, and resetting configuration, with external change notifications and revision checks to prevent stale writes;
+- Raised the minimum supported version to DSH 0.1.7-rc.1 and updated the related dependencies, configuration schema, and compatibility tests.
 
 ### v1.2.4 · 2026-09-09
 

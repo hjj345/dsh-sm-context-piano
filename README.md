@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.4-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-min%200.1.7--rc.1-5b6?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.7-rc.1) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-v1.2.5-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-min%200.1.7--rc.1-5b6?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.7-rc.1) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -226,6 +226,12 @@ pnpm verify
 本项目采用 [MIT License](LICENSE) 开源。
 
 ## 更新日志
+
+### v1.2.5 · 2026-09-25
+
+- 适配 DSH 0.1.7-rc.1 设置接口，将插件设置迁移为 profile 配置，并保留 `sm-context-piano` 条目 ID 以承接旧设置；
+- 客户端改用 `remote.settings` 读取、修改和重置配置，支持外部配置更新，并以版本号避免覆盖过期数据；
+- 将最低支持版本提升至 DSH 0.1.7-rc.1，更新相关依赖、配置 schema 和兼容性测试。
 
 ### v1.2.4 · 2026-09-09
 
