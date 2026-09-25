@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.5-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-min%200.1.7--rc.1-5b6?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness/releases/tag/dsh-v0.1.7-rc.1) [![node](https://img.shields.io/badge/node-22.19%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![version](https://img.shields.io/badge/version-v1.2.5-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-%3E%3D%20v0.1.7--rc.1-orange?style=flat-square)](#兼容性与实现边界) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#兼容性与实现边界)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
