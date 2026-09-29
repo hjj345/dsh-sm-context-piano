@@ -74,7 +74,7 @@ assert.deepEqual(decodeSettings({ enabled: false, keyHeight: 4, keyGap: 6, maxVi
   language: 'zh', enabled: false, keyHeight: 4, keyGap: 6, maxVisible: 5,
 })
 assert.deepEqual(decodeSettings({ language: 'zh-TW', enabled: true, keyHeight: 99, keyGap: 0, maxVisible: 99 }), {
-  language: 'zh-TW', enabled: true, keyHeight: 4, keyGap: 6, maxVisible: 30,
+  language: 'zh-TW', enabled: true, keyHeight: 4, keyGap: 6, maxVisible: 40,
 })
 assert.equal(decodeSettings({ language: 'fr' }).language, 'zh')
 assert.doesNotThrow(() => validateSettings(DEFAULT_SETTINGS))

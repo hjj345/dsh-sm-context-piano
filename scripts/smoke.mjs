@@ -73,7 +73,7 @@ check('host exports volatile profile settings and opts out of generated page', (
   assert.equal(serialized.refs[fields.keyGap].meta.min, 6)
   assert.equal(serialized.refs[fields.keyGap].meta.max, 18)
   assert.equal(serialized.refs[fields.maxVisible].meta.min, 5)
-  assert.equal(serialized.refs[fields.maxVisible].meta.max, 30)
+  assert.equal(serialized.refs[fields.maxVisible].meta.max, 40)
   assert.doesNotThrow(() => host.Config())
   assert.throws(() => host.Config({ keyHeight: 2.5 }))
   assert.throws(() => host.Config({ keyGap: 6.5 }))

@@ -1,4 +1,4 @@
-import { useCallback, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react'
 import type { ChangeEvent, ReactNode } from 'react'
 import type { ClientRemote } from '@deepseek-ai/dsh-api-remotes/client'
 import type {
@@ -203,17 +203,28 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
   const [error, setError] = useState<SettingsErrorKey | null>(null)
   const [copied, setCopied] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const resetDialog = useRef<HTMLDialogElement>(null)
   const [draft, setDraft] = useState<Pick<PianoSettings, 'keyHeight' | 'keyGap' | 'maxVisible'> & { dirty: true } | null>(null)
   const savedDisplay = { keyHeight: settings.keyHeight, keyGap: settings.keyGap, maxVisible: settings.maxVisible }
   const display = draft ?? savedDisplay
   const disabled = !snapshot.writable || busy
+
+  useEffect(() => {
+    const dialog = resetDialog.current
+    if (showResetConfirm && dialog !== null && !dialog.open) dialog.showModal()
+    else if (!showResetConfirm && dialog?.open) dialog.close()
+  }, [showResetConfirm])
 
   const write = <K extends keyof PianoSettings>(field: K, value: PianoSettings[K]): void => {
     setError(null)
     void scope.set(field, value).catch(() => { setError('settings.writeError') })
   }
   const reset = (): void => {
-    if (!window.confirm(t('settings.resetConfirm'))) return
+    setShowResetConfirm(true)
+  }
+  const confirmReset = (): void => {
+    setShowResetConfirm(false)
     setError(null)
     setBusy(true)
     void scope.reset()
@@ -340,6 +351,26 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
         {snapshot.status === 'loading' && <p className="smcp-settings-note">{t('settings.loading')}</p>}
         {snapshot.status === 'unavailable' && <p className="smcp-settings-note">{t('settings.unavailable')}</p>}
       </section>
+
+      <dialog
+        ref={resetDialog}
+        className="smcp-settings-dialog"
+        aria-modal="true"
+        aria-labelledby="smcp-reset-dialog-title"
+        aria-describedby="smcp-reset-dialog-description"
+        onCancel={(event) => { event.preventDefault(); setShowResetConfirm(false) }}
+      >
+        <h2 id="smcp-reset-dialog-title">{t('settings.resetConfirmTitle')}</h2>
+        <p id="smcp-reset-dialog-description">{t('settings.resetConfirm')}</p>
+        <div className="smcp-settings-dialog-actions">
+          <button type="button" className="smcp-settings-dialog-cancel" autoFocus onClick={() => { setShowResetConfirm(false) }}>
+            {t('settings.cancel')}
+          </button>
+          <button type="button" className="smcp-settings-reset" onClick={confirmReset}>
+            {t('settings.reset')}
+          </button>
+        </div>
+      </dialog>
 
       <section className="smcp-settings-card smcp-settings-about">
         <h2>{t('settings.about')}</h2>

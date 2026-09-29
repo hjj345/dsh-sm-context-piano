@@ -118,7 +118,7 @@ The language choice is stored independently by the plugin. It does not change th
 | Enabled | On | Disable or re-enable the navigator at any time |
 | Key thickness | `2px` | `1–4px` |
 | Key spacing | `12px` | `6–18px`, measured between adjacent key centers |
-| Maximum visible keys | `20` | `5–30`; a fixed window is used above this limit |
+| Maximum visible keys | `20` | `5–40`; a fixed window is used above this limit |
 | Restore defaults | — | Restores language, enablement, and every display parameter |
 
 Total rail height is derived automatically:

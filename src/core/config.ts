@@ -23,7 +23,7 @@ export const DEFAULT_SETTINGS: PianoSettings = {
 export const SETTINGS_LIMITS = {
   keyHeight: { min: 1, max: 4 },
   keyGap: { min: 6, max: 18 },
-  maxVisible: { min: 5, max: 30 },
+  maxVisible: { min: 5, max: 40 },
 } as const
 
 const integer = (value: unknown, fallback: number, min: number, max: number): number => {

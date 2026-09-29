@@ -38,6 +38,8 @@ globalThis.ResizeObserver = class {
   disconnect() {}
 }
 window.matchMedia = () => ({ matches: false })
+window.HTMLDialogElement.prototype.showModal = function () { this.setAttribute('open', '') }
+window.HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
 
 const root = document.createElement('div')
 Object.defineProperties(root, {
@@ -383,6 +385,7 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.equal(document.querySelector('.smcp-strip').getAttribute('aria-label'), 'nav.aria')
   const sliders = [...mount.querySelectorAll('.smcp-settings-range input')]
   assert.equal(sliders.length, 3)
+  assert.equal(sliders[2].max, '40')
   const writesBeforeDraft = settingsWriteCount
   const setSliderValue = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
   for (const [slider, value] of sliders.map((slider, index) => [slider, ['4', '8', '10'][index]])) {
@@ -406,23 +409,35 @@ await check('registers the first-level settings page directly after Agent Preset
   )
   assert.equal(mount.querySelector('.smcp-settings-save').disabled, true)
 
-  let confirmReset = false
-  let confirmMessage = ''
-  window.confirm = message => { confirmMessage = message; return confirmReset }
+  const writesBeforeReset = settingsWriteCount
+  const resetDialog = mount.querySelector('.smcp-settings-dialog')
   await act(async () => {
     mount.querySelector('.smcp-settings-reset').click()
     await waitFrame()
   })
-  assert.match(confirmMessage, /启用状态|啟用狀態/)
-  assert.equal(settingsWriteCount, writesBeforeDraft + 1)
+  assert.equal(resetDialog.open, true)
+  assert.match(resetDialog.querySelector('h2').textContent, /确认恢复默认设置|確認恢復預設設定/)
+  assert.match(resetDialog.querySelector('p').textContent, /启用状态|啟用狀態/)
+  assert.equal(resetDialog.getAttribute('aria-modal'), 'true')
+  await act(async () => {
+    resetDialog.querySelector('.smcp-settings-dialog-cancel').click()
+    await waitFrame()
+  })
+  assert.equal(resetDialog.open, false)
+  assert.equal(settingsWriteCount, writesBeforeReset)
   assert.equal(settingsEntry.value.keyHeight, 4)
-  confirmReset = true
   await act(async () => {
     mount.querySelector('.smcp-settings-reset').click()
     await waitFrame()
   })
+  assert.equal(resetDialog.open, true)
+  await act(async () => {
+    resetDialog.querySelector('.smcp-settings-dialog-actions .smcp-settings-reset').click()
+    await waitFrame()
+  })
+  assert.equal(resetDialog.open, false)
   assert.deepEqual(settingsEntry.value, defaults)
-  assert.equal(settingsWriteCount, writesBeforeDraft + 2)
+  assert.equal(settingsWriteCount, writesBeforeReset + 1)
   assert.match(mount.textContent, /显示设置/)
   await act(async () => {
     commandBox.querySelector('button').click()
@@ -436,6 +451,8 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(styles, /background: #f3f3f4/)
   assert.match(styles, /\.smcp-settings-select[\s\S]*border-radius: 9px/)
   assert.match(styles, /\.smcp-settings-save,[\s\S]*\.smcp-settings-reset[\s\S]*background: #161719[\s\S]*color: #fff/)
+  assert.match(styles, /\.smcp-settings-dialog::backdrop\s*\{\s*background: rgba\(0, 0, 0, \.42\)/)
+  assert.match(styles, /\.smcp-settings-dialog-cancel[\s\S]*border-radius: 9px/)
   assert.match(styles, /\.smcp-settings-command-box button[\s\S]*background: #161719[\s\S]*color: #fff/)
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box[\s\S]*background: rgba\(255, 255, 255, \.08\)/)
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box code[\s\S]*color: #f1f1f3/)
@@ -456,6 +473,14 @@ await check('live settings resize, limit, disable, and restore the rail', async 
   let strip = document.querySelector('.smcp-strip')
   assert.equal(Number.parseFloat(strip.style.height), 36)
   assert.ok([...document.querySelectorAll('.smcp-bar')].every(bar => Number.parseFloat(bar.style.height) === 4))
+
+  await settingsController.set('maxVisible', 40)
+  await waitFrame()
+  assert.equal(Number.parseFloat(strip.style.height), 316)
+  assert.equal(settingsController.getSnapshot().value.maxVisible, 40)
+
+  await settingsController.set('maxVisible', 5)
+  await waitFrame()
 
   await settingsController.set('enabled', false)
   await waitFrame()

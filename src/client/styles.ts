@@ -269,6 +269,33 @@ const CSS = `
 .smcp-settings-reset:hover:not(:disabled) { background: #2c2d30; border-color: #2c2d30; }
 .smcp-settings-save:disabled,
 .smcp-settings-reset:disabled { opacity: .45; cursor: not-allowed; }
+.smcp-settings-dialog {
+  width: min(480px, calc(100vw - 32px));
+  max-width: none;
+  padding: 20px;
+  border: 1px solid var(--dsw-alias-border-l2, rgba(0, 0, 0, .12));
+  border-radius: 16px;
+  background: var(--dsw-alias-bg-layer-2, #fff);
+  color: var(--dsw-alias-label-primary, #202124);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, .22);
+  font: inherit;
+}
+.smcp-settings-dialog::backdrop { background: rgba(0, 0, 0, .42); }
+.smcp-settings-dialog h2 { margin: 0; font-size: 16px; font-weight: 600; line-height: 24px; }
+.smcp-settings-dialog p { margin: 10px 0 0; color: var(--dsw-alias-label-secondary, #73757a); font-size: 13px; line-height: 20px; }
+.smcp-settings-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+.smcp-settings-dialog-cancel {
+  padding: 7px 12px;
+  border: 1px solid var(--dsw-alias-border-l2, rgba(0, 0, 0, .14));
+  border-radius: 9px;
+  background: var(--dsw-alias-bg-layer-2, #fff);
+  color: var(--dsw-alias-label-primary, #202124);
+  cursor: pointer;
+  font: inherit;
+}
+.smcp-settings-dialog-cancel:hover { background: var(--dsw-alias-bg-layer-3, #f3f3f4); }
+.smcp-settings-dialog button:focus-visible { outline: 2px solid var(--dsw-alias-border-focus, #4c7ef3); outline-offset: 2px; }
+body[data-ds-dark-theme] .smcp-settings-dialog-cancel { background: rgba(255, 255, 255, .06); }
 .smcp-settings-error { margin: 10px 0 0; color: var(--dsw-alias-state-danger, #d93025); font-size: 12px; }
 .smcp-settings-note { margin: 10px 0 0; }
 .smcp-settings-about dl { margin: 0; }
