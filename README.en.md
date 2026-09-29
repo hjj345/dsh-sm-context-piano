@@ -2,7 +2,7 @@
 
 English documentation · [简体中文（默认）](README.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.6-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%7C%200.2.0--rc.1-orange?style=flat-square)](#compatibility-and-boundaries) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#compatibility-and-boundaries)
+[![version](https://img.shields.io/badge/version-v1.2.7-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%7C%200.2.0--rc.1-orange?style=flat-square)](#compatibility-and-boundaries) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#compatibility-and-boundaries)
 
 GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -230,6 +230,12 @@ Yes. Language, enablement, and display parameters are persisted through the DSH 
 This project is open source under the [MIT License](LICENSE).
 
 ## Changelog
+
+### v1.2.7 · 2026-09-29
+
+- Adapted to DSH 0.2.0-rc.1 and expanded the settings API and dependency compatibility ranges;
+- Changed display settings to draft editing with a single save action, added saving feedback and a restore-default confirmation dialog to avoid write churn and UI stalls;
+- Increased the maximum visible key count from 30 to 40 and fixed settings-page overlay layering and dialog interaction issues.
 
 ### v1.2.6 · 2026-09-26
 

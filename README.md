@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.6-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%7C%200.2.0--rc.1-orange?style=flat-square)](#兼容性与实现边界) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#兼容性与实现边界)
+[![version](https://img.shields.io/badge/version-v1.2.7-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%7C%200.2.0--rc.1-orange?style=flat-square)](#兼容性与实现边界) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#兼容性与实现边界)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -230,6 +230,12 @@ pnpm verify
 本项目采用 [MIT License](LICENSE) 开源。
 
 ## 更新日志
+
+### v1.2.7 · 2026-09-29
+
+- 适配 DSH 0.2.0-rc.1，扩展设置接口和依赖兼容范围；
+- 将显示设置调整为草稿编辑后统一保存，新增保存状态与恢复默认确认弹窗，避免频繁写入造成卡顿；
+- 将最大显示琴键数量从 30 提升至 40，并修复设置页悬浮层级与对话框交互问题。
 
 ### v1.2.6 · 2026-09-26
 
