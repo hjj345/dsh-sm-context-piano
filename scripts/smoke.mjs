@@ -26,13 +26,16 @@ check('host core packages are peer-only', () => {
     assert.ok(manifest.peerDependencies?.[name])
     assert.ok(manifest.devDependencies?.[name])
   }
-  assert.equal(manifest.peerDependencies['@deepseek-ai/dsh-settings'], '^0.1.7-rc.1')
-  assert.equal(manifest.peerDependencies['@deepseek-ai/dsh-api-remotes'], '^0.1.7-rc.1')
+  assert.equal(manifest.peerDependencies['@deepseek-ai/dsh-settings'], '^0.1.7-rc.1 || ^0.2.0-rc.1')
+  assert.equal(manifest.peerDependencies['@deepseek-ai/dsh-api-remotes'], '^0.1.7-rc.1 || ^0.2.0-rc.1')
 })
 
-check('manifest requests the DSH 0.1.7 settings and remotes APIs', () => {
+check('manifest supports the DSH 0.1.7 and 0.2 settings and remotes APIs', () => {
   assert.equal(manifest.version, '1.2.6')
-  assert.equal(manifest.engines.dsh, '>=0.1.7-rc.1')
+  assert.equal(manifest.engines.dsh, '>=0.1.7-rc.1 || >=0.2.0-rc.1')
+  for (const name of Object.keys(manifest.devDependencies).filter(name => name.startsWith('@deepseek-ai/dsh-'))) {
+    assert.equal(manifest.devDependencies[name], '0.2.0-rc.1')
+  }
   assert.ok(manifest.dsh.client.inject.includes('@deepseek-ai/dsh-api-remotes'))
   assert.ok(manifest.dsh.client.inject.includes('@deepseek-ai/dsh-api-session-controller'))
   assert.ok(manifest.dsh.client.inject.includes('@deepseek-ai/dsh-client-ui-chat'))
@@ -43,6 +46,7 @@ check('both READMEs declare the same minimum DSH version and release', () => {
   for (const file of ['README.md', 'README.en.md']) {
     const readme = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8')
     assert.match(readme, /DSH 0\.1\.7-rc\.1/)
+    assert.match(readme, /DSH 0\.2\.0-rc\.1/)
     assert.match(readme, /version-v1\.2\.6/)
   }
 })

@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.6-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-%3E%3D%20v0.1.7--rc.1-orange?style=flat-square)](#兼容性与实现边界) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#兼容性与实现边界)
+[![version](https://img.shields.io/badge/version-v1.2.6-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%7C%200.2.0--rc.1-orange?style=flat-square)](#兼容性与实现边界) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#兼容性与实现边界)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -15,6 +15,8 @@ npm：[@hjj345345/dsh-sm-context-piano](https://www.npmjs.com/package/%40hjj3453
 DeepSeek Harness Web GUI 的 Codex 式对话琴键导航插件。
 
 **最低支持版本：DSH 0.1.7-rc.1。**
+
+兼容范围也包含 DSH 0.2.0-rc.1。
 
 它在聊天正文左侧增加一组紧凑的横线琴键，将长对话压缩为可预览、可定位的语义节点。用户可以沿琴键快速浏览对话结构，悬停查看摘要，点击或使用键盘跳转到目标段落，而不必反复拖动滚动条寻找上下文。
 
