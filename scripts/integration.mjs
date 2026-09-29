@@ -381,12 +381,48 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(mount.textContent, /安裝命令/)
   assert.equal(settingsSection.options.label(), 'settings.nav')
   assert.equal(document.querySelector('.smcp-strip').getAttribute('aria-label'), 'nav.aria')
+  const sliders = [...mount.querySelectorAll('.smcp-settings-range input')]
+  assert.equal(sliders.length, 3)
+  const writesBeforeDraft = settingsWriteCount
+  const setSliderValue = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
+  for (const [slider, value] of sliders.map((slider, index) => [slider, ['4', '8', '10'][index]])) {
+    await act(async () => {
+      setSliderValue.call(slider, value)
+      slider.dispatchEvent(new window.Event('input', { bubbles: true }))
+      await Promise.resolve()
+    })
+  }
+  assert.equal(settingsWriteCount, writesBeforeDraft)
+  assert.deepEqual([...mount.querySelectorAll('.smcp-settings-range output')].map(output => output.textContent), ['4px', '8px', '10'])
+  assert.equal(mount.querySelector('.smcp-settings-save').disabled, false)
+  await act(async () => {
+    mount.querySelector('.smcp-settings-save').click()
+    await waitFrame()
+  })
+  assert.equal(settingsWriteCount, writesBeforeDraft + 1)
+  assert.deepEqual(
+    [settingsEntry.value.keyHeight, settingsEntry.value.keyGap, settingsEntry.value.maxVisible],
+    [4, 8, 10],
+  )
+  assert.equal(mount.querySelector('.smcp-settings-save').disabled, true)
+
+  let confirmReset = false
+  let confirmMessage = ''
+  window.confirm = message => { confirmMessage = message; return confirmReset }
+  await act(async () => {
+    mount.querySelector('.smcp-settings-reset').click()
+    await waitFrame()
+  })
+  assert.match(confirmMessage, /启用状态|啟用狀態/)
+  assert.equal(settingsWriteCount, writesBeforeDraft + 1)
+  assert.equal(settingsEntry.value.keyHeight, 4)
+  confirmReset = true
   await act(async () => {
     mount.querySelector('.smcp-settings-reset').click()
     await waitFrame()
   })
   assert.deepEqual(settingsEntry.value, defaults)
-  assert.equal(settingsWriteCount, 3)
+  assert.equal(settingsWriteCount, writesBeforeDraft + 2)
   assert.match(mount.textContent, /显示设置/)
   await act(async () => {
     commandBox.querySelector('button').click()
@@ -399,11 +435,11 @@ await check('registers the first-level settings page directly after Agent Preset
   assert.match(styles, /white-space: pre-wrap/)
   assert.match(styles, /background: #f3f3f4/)
   assert.match(styles, /\.smcp-settings-select[\s\S]*border-radius: 9px/)
-  assert.match(styles, /\.smcp-settings-reset[\s\S]*background: #161719[\s\S]*color: #fff/)
+  assert.match(styles, /\.smcp-settings-save,[\s\S]*\.smcp-settings-reset[\s\S]*background: #161719[\s\S]*color: #fff/)
   assert.match(styles, /\.smcp-settings-command-box button[\s\S]*background: #161719[\s\S]*color: #fff/)
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box[\s\S]*background: rgba\(255, 255, 255, \.08\)/)
   assert.match(styles, /body\[data-ds-dark-theme\] \.smcp-settings-command-box code[\s\S]*color: #f1f1f3/)
-  assert.match(styles, /\.smcp-overlay[\s\S]*z-index: 10000/)
+  assert.match(styles, /\.smcp-overlay[\s\S]*z-index: 10/)
   assert.match(styles, /\.smcp-overlay\[hidden\][\s\S]*display: none !important/)
   assert.doesNotMatch(styles, /body:has\(\[role="dialog"\]\) \.smcp-overlay/)
   assert.match(styles, /@media \(max-width: 520px\)/)

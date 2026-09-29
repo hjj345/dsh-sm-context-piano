@@ -56,6 +56,7 @@ export interface PianoSettingsScope {
   getSnapshot(): PianoSettingsSnapshot
   subscribe(listener: () => void): () => void
   set<K extends keyof PianoSettings>(field: K, value: PianoSettings[K]): Promise<void>
+  saveDisplaySettings(value: Pick<PianoSettings, 'keyHeight' | 'keyGap' | 'maxVisible'>): Promise<void>
   unset(field: keyof PianoSettings): Promise<void>
   reset(): Promise<void>
 }
@@ -133,6 +134,11 @@ export function createPianoSettingsSource(remote: ClientRemote): PianoSettingsCo
       return () => { listeners.delete(listener) }
     },
     set: (field, value) => write([{ op: 'set', path: [field], value }]),
+    saveDisplaySettings: value => write([
+      { op: 'set', path: ['keyHeight'], value: value.keyHeight },
+      { op: 'set', path: ['keyGap'], value: value.keyGap },
+      { op: 'set', path: ['maxVisible'], value: value.maxVisible },
+    ]),
     unset: field => write([{ op: 'unset', path: [field] }]),
     reset: () => write((['language', 'enabled', 'keyHeight', 'keyGap', 'maxVisible'] as const).map(field => ({ op: 'unset' as const, path: [field] }))),
   }
@@ -196,15 +202,41 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
   const t = (key: SmContextPianoKey): string => translate(settings.language, key)
   const [error, setError] = useState<SettingsErrorKey | null>(null)
   const [copied, setCopied] = useState(false)
-  const disabled = !snapshot.writable
+  const [busy, setBusy] = useState(false)
+  const [draft, setDraft] = useState<Pick<PianoSettings, 'keyHeight' | 'keyGap' | 'maxVisible'> & { dirty: true } | null>(null)
+  const savedDisplay = { keyHeight: settings.keyHeight, keyGap: settings.keyGap, maxVisible: settings.maxVisible }
+  const display = draft ?? savedDisplay
+  const disabled = !snapshot.writable || busy
 
   const write = <K extends keyof PianoSettings>(field: K, value: PianoSettings[K]): void => {
     setError(null)
     void scope.set(field, value).catch(() => { setError('settings.writeError') })
   }
   const reset = (): void => {
+    if (!window.confirm(t('settings.resetConfirm'))) return
     setError(null)
-    void scope.reset().catch(() => { setError('settings.writeError') })
+    setBusy(true)
+    void scope.reset()
+      .then(() => { setDraft(null) })
+      .catch(() => { setError('settings.writeError') })
+      .finally(() => { setBusy(false) })
+  }
+  const saveDisplay = (): void => {
+    if (draft === null || !draft.dirty) return
+    setError(null)
+    setBusy(true)
+    void scope.saveDisplaySettings(draft)
+      .then(() => { setDraft(null) })
+      .catch(() => { setError('settings.writeError') })
+      .finally(() => { setBusy(false) })
+  }
+  const changeDisplay = (field: 'keyHeight' | 'keyGap' | 'maxVisible', value: number): void => {
+    setDraft(current => {
+      const next = { ...(current ?? savedDisplay), [field]: value }
+      return next.keyHeight === settings.keyHeight && next.keyGap === settings.keyGap && next.maxVisible === settings.maxVisible
+        ? null
+        : { ...next, dirty: true }
+    })
   }
   const copyCommand = (): void => {
     setError(null)
@@ -266,40 +298,45 @@ export function PianoSettingsPage(props: PianoSettingsPageProps): ReactNode {
         <RangeRow
           label={t('settings.height')}
           description={t('settings.heightDesc')}
-          value={settings.keyHeight}
+          value={display.keyHeight}
           min={SETTINGS_LIMITS.keyHeight.min}
           max={SETTINGS_LIMITS.keyHeight.max}
           suffix="px"
           disabled={disabled}
-          onChange={(value) => { write('keyHeight', value) }}
+          onChange={(value) => { changeDisplay('keyHeight', value) }}
         />
         <RangeRow
           label={t('settings.gap')}
           description={t('settings.gapDesc')}
-          value={settings.keyGap}
+          value={display.keyGap}
           min={SETTINGS_LIMITS.keyGap.min}
           max={SETTINGS_LIMITS.keyGap.max}
           suffix="px"
           disabled={disabled}
-          onChange={(value) => { write('keyGap', value) }}
+          onChange={(value) => { changeDisplay('keyGap', value) }}
         />
         <RangeRow
           label={t('settings.maxVisible')}
           description={t('settings.maxVisibleDesc')}
-          value={settings.maxVisible}
+          value={display.maxVisible}
           min={SETTINGS_LIMITS.maxVisible.min}
           max={SETTINGS_LIMITS.maxVisible.max}
           suffix=""
           disabled={disabled}
-          onChange={(value) => { write('maxVisible', value) }}
+          onChange={(value) => { changeDisplay('maxVisible', value) }}
         />
         <div className="smcp-settings-total">
           <span>{t('settings.totalHeight')}</span>
-          <strong>{railHeight(settings)}px</strong>
+          <strong>{railHeight({ ...settings, ...display })}px</strong>
         </div>
-        <button type="button" className="smcp-settings-reset" disabled={disabled} onClick={reset}>
-          {t('settings.reset')}
-        </button>
+        <div className="smcp-settings-actions">
+          <button type="button" className="smcp-settings-save" disabled={disabled || !draft?.dirty} onClick={saveDisplay}>
+            {busy ? t('settings.saving') : t('settings.save')}
+          </button>
+          <button type="button" className="smcp-settings-reset" disabled={disabled} onClick={reset}>
+            {t('settings.reset')}
+          </button>
+        </div>
         {snapshot.status === 'loading' && <p className="smcp-settings-note">{t('settings.loading')}</p>}
         {snapshot.status === 'unavailable' && <p className="smcp-settings-note">{t('settings.unavailable')}</p>}
       </section>

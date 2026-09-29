@@ -4,7 +4,7 @@ const CSS = `
 .smcp-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 10;
   isolation: isolate;
   pointer-events: none;
 }
@@ -255,8 +255,8 @@ const CSS = `
   font-size: 12px;
 }
 .smcp-settings-total strong { color: var(--dsw-alias-label-primary, #202124); font-weight: 500; }
+.smcp-settings-save,
 .smcp-settings-reset {
-  margin-top: 14px;
   padding: 7px 12px;
   border: 1px solid #161719;
   border-radius: 9px;
@@ -264,7 +264,10 @@ const CSS = `
   color: #fff;
   cursor: pointer;
 }
+.smcp-settings-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.smcp-settings-save:hover:not(:disabled),
 .smcp-settings-reset:hover:not(:disabled) { background: #2c2d30; border-color: #2c2d30; }
+.smcp-settings-save:disabled,
 .smcp-settings-reset:disabled { opacity: .45; cursor: not-allowed; }
 .smcp-settings-error { margin: 10px 0 0; color: var(--dsw-alias-state-danger, #d93025); font-size: 12px; }
 .smcp-settings-note { margin: 10px 0 0; }
