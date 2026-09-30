@@ -2,7 +2,7 @@
 
 English documentation · [简体中文（默认）](README.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.7-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%7C%200.2.0--rc.1-orange?style=flat-square)](#compatibility-and-boundaries) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#compatibility-and-boundaries)
+[![version](https://img.shields.io/badge/version-v1.2.8-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345/dsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%7C%200.2.0--rc.2-orange?style=flat-square)](#compatibility-and-boundaries) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#compatibility-and-boundaries)
 
 GitHub: [https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -230,6 +230,11 @@ Yes. Language, enablement, and display parameters are persisted through the DSH 
 This project is open source under the [MIT License](LICENSE).
 
 ## Changelog
+
+### v1.2.8 · 2026-09-30
+
+- Fixed DSH 0.2.0-rc.2 client plugin loading by adding the `dsh-client-modules` injection and updating the related development dependencies;
+- Updated the DSH 0.2.0-rc.2 compatibility notes, smoke checks, and npm build artifacts so the published package contains loadable host and client bundles.
 
 ### v1.2.7 · 2026-09-29
 

@@ -2,7 +2,7 @@
 
 中文文档（默认） · [English documentation](README.en.md)
 
-[![version](https://img.shields.io/badge/version-v1.2.7-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345%2Fdsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%7C%200.2.0--rc.1-orange?style=flat-square)](#兼容性与实现边界) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#兼容性与实现边界)
+[![version](https://img.shields.io/badge/version-v1.2.8-blue?style=flat-square)](https://www.npmjs.com/package/%40hjj345345/dsh-sm-context-piano) [![DSH](https://img.shields.io/badge/DSH-0.1.7--rc.1%20%7C%200.2.0--rc.2-orange?style=flat-square)](#兼容性与实现边界) [![node](https://img.shields.io/badge/node-22.19%2B%20%28%3C23%29%20or%2024%2B-339933?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/) [![license](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE) [![platform](https://img.shields.io/badge/platform-Web-lightgrey?style=flat-square)](#兼容性与实现边界)
 
 GitHub：[https://github.com/hjj345/dsh-sm-context-piano](https://github.com/hjj345/dsh-sm-context-piano)
 
@@ -230,6 +230,11 @@ pnpm verify
 本项目采用 [MIT License](LICENSE) 开源。
 
 ## 更新日志
+
+### v1.2.8 · 2026-09-30
+
+- 修复 DSH 0.2.0-rc.2 客户端插件加载问题，补充 `dsh-client-modules` 注入并更新相关开发依赖；
+- 更新 DSH 0.2.0-rc.2 兼容说明、smoke 校验和 npm 构建产物，确保发布包包含可加载的 host/client bundle。
 
 ### v1.2.7 · 2026-09-29
 
