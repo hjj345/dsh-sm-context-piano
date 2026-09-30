@@ -1,6 +1,9 @@
 node_modules/
 .pnpm-store/
 lib/
+!lib/
+!lib/index.js
+!lib/client.js
 dist/
 build/
 coverage/

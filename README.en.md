@@ -16,7 +16,7 @@ A Codex-style conversation navigator for the DeepSeek Harness Web GUI.
 
 **Minimum supported version: DSH 0.1.7-rc.1.**
 
-The compatibility range also includes DSH 0.2.0-rc.1.
+The compatibility range also includes DSH 0.2.0-rc.2.
 
 It adds a compact rail of horizontal keys beside the transcript and condenses a long conversation into semantic nodes that can be previewed and located. Users can scan the conversation structure, hover for summaries, and click or use the keyboard to jump to a target paragraph instead of repeatedly dragging the scrollbar to recover context.
 
